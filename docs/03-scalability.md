@@ -1,7 +1,10 @@
-# Scalability Roadmap — Room Shopping List
+# Scalability Roadmap — Homeful
 
 เอกสารนี้ตอบคำถาม "ถ้าในอนาคตระบบซับซ้อนขึ้น จะ scale ยังไง"
 โดยแยกเป็น (ก) สิ่งที่ออกแบบไว้แล้วให้พร้อมโต และ (ข) แนวทางปรับเมื่อถึงจุดที่ต้องการ
+
+> สถานะปัจจุบัน: 5 services (api-gateway, auth, customer, catalog, analytics) + 4 DB แยก,
+> มีระบบ auth (JWT + OTP) ที่ gateway แล้ว
 
 ## ส่วนที่ 1 — รากฐานที่ "พร้อมโต" อยู่แล้ว (ทำไว้แล้ว)
 
@@ -30,13 +33,13 @@
 
 ### ระดับ 3: ต้องการ decoupling จริง (async)
 - ใส่ **message broker** (RabbitMQ / Kafka / NATS)
-- catalog publish event (`ItemAdded`, `MonthUpdated`); analytics subscribe
+- catalog publish event (`ItemAdded`, `ItemUpdated`); analytics subscribe
 - ได้ eventual consistency, ทนทานต่อ service ล่มชั่วคราว, ลด coupling แบบ synchronous
 - NestJS รองรับผ่าน `@nestjs/microservices` — adapter ใหม่เสียบที่ port เดิม (domain ไม่เปลี่ยน)
 
 ### ระดับ 4: มี client/ทีมหลายแบบ
 - พิจารณา **GraphQL / BFF** ที่ gateway (เคยคุยกันไว้ — ยังไม่จำเป็นตอนนี้)
-- แยก service เพิ่มตาม bounded context (เช่น แยก `notification-service`, `user-service` เมื่อมีระบบ login)
+- แยก service เพิ่มตาม bounded context (เช่น แยก `notification-service` เมื่อมี push จริง — ปัจจุบันมี `auth-service`/`customer-service` แล้ว)
 
 ### ระดับ 5: operational maturity
 - **Observability**: centralized logging, tracing (OpenTelemetry), metrics (Prometheus/Grafana)
@@ -48,10 +51,11 @@
 | ปัจจุบัน (dev) | ต้องเปลี่ยนก่อน production |
 |----------------|---------------------------|
 | `synchronize: true` | ใช้ migration แทน (กัน data loss) |
-| ไม่มี auth | เพิ่ม auth ที่ gateway (JWT/OAuth) |
+| OTP/อีเมลผ่าน Ethereal + log console | ต่อ SMTP/SES/SendGrid จริง |
 | ไม่มี cache | เพิ่ม cache layer ตาม hotspot |
 | synchronous REST ระหว่าง service | พิจารณา async event เมื่อ coupling เป็นปัญหา |
 | คำนวณ analytics สด | snapshot + event-driven update |
+| JWT secret เป็น dev default ใน env | ใช้ secret manager + rotate keys |
 
 ## สรุป
 สถาปัตยกรรมปัจจุบันถูกออกแบบให้ **โตได้โดยไม่ต้องรื้อ**: domain ถูกกันออกจาก infra ด้วย ports & adapters,

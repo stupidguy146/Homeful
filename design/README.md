@@ -1,4 +1,4 @@
-# Design System — Room Shopping List
+# Design System — Homeful
 
 ระบบดีไซน์รวมศูนย์สำหรับแอป โดยมี **แหล่งความจริงเดียว (single source of truth)** คือ design tokens
 ที่ใช้ตรงกันทั้งในโค้ด Flutter และใน Figma
@@ -15,7 +15,11 @@ frontend/lib/
 │  ├─ app_tokens.dart     # tokens ฝั่งโค้ด (สี, spacing, radius, shadow, type)
 │  └─ app_theme.dart      # ThemeData light/dark สร้างจาก tokens
 └─ widgets/
-   └─ app_widgets.dart    # components ใช้ซ้ำ (AppCard, GradientHeader, StatTile, AppPill, ...)
+   ├─ app_widgets.dart   # components ใช้ซ้ำ (AppCard, GradientHeader, StatTile, AppPill, ...)
+   ├─ app_snackbar.dart  # snackbar แบ่งสีตามผล (success/error/info)
+   ├─ confirm_dialog.dart# modal ยืนยันกลาง (รองรับโหมด danger สำหรับลบข้อมูล)
+   ├─ password_strength_meter.dart # แถบวัดความแข็งแรง + checklist เงื่อนไขรหัสผ่าน
+   └─ pin_pad.dart       # แป้น PIN 6 หลัก (ใช้ตอนตั้ง/ปลดล็อก)
 ```
 
 ค่าใน `app_tokens.dart` (Dart) และ `figma-tokens.json` (Figma) **ตรงกัน** —
