@@ -1,4 +1,4 @@
-import { CustomerProfile } from '../../../domain/model/customer-profile';
+import { CustomerProfile, Title } from '../../../domain/model/customer-profile';
 import { CustomerRecord } from '../orm/customer.persistence';
 
 export class CustomerMapper {
@@ -6,6 +6,7 @@ export class CustomerMapper {
     const rec = new CustomerRecord();
     if (p.id !== undefined) rec.id = p.id;
     rec.ssoId = p.ssoId;
+    rec.title = p.title;
     rec.username = p.username;
     rec.firstName = p.firstName;
     rec.lastName = p.lastName;
@@ -21,6 +22,7 @@ export class CustomerMapper {
     return new CustomerProfile({
       id: rec.id,
       ssoId: rec.ssoId,
+      title: (rec.title as Title) ?? 'unspecified',
       username: rec.username,
       firstName: rec.firstName,
       lastName: rec.lastName,

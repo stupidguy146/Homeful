@@ -50,6 +50,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   Future<void> _editBudget() async {
     final s = context.strings;
+    final dataRefresh = DataScope.of(context);
     final ctrl = TextEditingController(text: _budget.toStringAsFixed(0));
     final saved = await showDialog<bool>(
       context: context,
@@ -74,6 +75,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble(_kBudgetKey, v);
       if (mounted) setState(() => _budget = v);
+      dataRefresh.bump(); // let other screens (home card) pick up the new budget
     }
   }
 
@@ -103,7 +105,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             return ListView(
               padding: EdgeInsets.zero,
               children: [
-                _Header(onSetBudget: _editBudget),
+                const _Header(),
                 Transform.translate(
                   offset: const Offset(0, -28),
                   child: Padding(
@@ -114,6 +116,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       budget: _budget,
                       pct: pct.toDouble(),
                       baht: baht,
+                      onSetBudget: _editBudget,
                     ),
                   ),
                 ),
@@ -175,8 +178,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
 }
 
 class _Header extends StatelessWidget {
-  final VoidCallback onSetBudget;
-  const _Header({required this.onSetBudget});
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +186,7 @@ class _Header extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+          AppSpacing.xl, AppSpacing.xxl, AppSpacing.xl, AppSpacing.xxxl),
       decoration: const BoxDecoration(
         gradient: AppGradients.brand,
         borderRadius:
@@ -192,32 +194,16 @@ class _Header extends StatelessWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(s.budgetTitle,
                 style: AppType.headlineMedium.copyWith(color: Colors.white)),
-            const Spacer(),
-            Material(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: InkWell(
-                onTap: onSetBudget,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.tune_rounded,
-                          color: Colors.white, size: 16),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(s.setBudget,
-                          style: AppType.label.copyWith(color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              s.expectedSpend,
+              style: AppType.bodyLarge
+                  .copyWith(color: Colors.white.withValues(alpha: 0.9)),
             ),
           ],
         ),
@@ -231,11 +217,13 @@ class _TotalCard extends StatelessWidget {
   final double budget;
   final double pct;
   final NumberFormat baht;
+  final VoidCallback onSetBudget;
   const _TotalCard({
     required this.total,
     required this.budget,
     required this.pct,
     required this.baht,
+    required this.onSetBudget,
   });
 
   @override
@@ -247,8 +235,38 @@ class _TotalCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(s.expectedSpend,
-              style: Theme.of(context).textTheme.bodyMedium),
+          // title + "set budget" action on one row
+          Row(
+            children: [
+              Expanded(
+                child: Text(s.expectedSpend,
+                    style: Theme.of(context).textTheme.bodyMedium),
+              ),
+              Material(
+                color: AppColors.brand500.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: InkWell(
+                  onTap: onSetBudget,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.tune_rounded,
+                            color: AppColors.brand600, size: 16),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(s.setBudget,
+                            style: AppType.label
+                                .copyWith(color: AppColors.brand600)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.xs),
           Text(baht.format(total),
               style: AppType.displayLarge.copyWith(

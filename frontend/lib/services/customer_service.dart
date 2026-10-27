@@ -54,6 +54,7 @@ class CustomerService {
   }
 
   Future<CustomerProfile> updateMyProfile({
+    String? title,
     String? username,
     String? firstName,
     String? lastName,
@@ -62,6 +63,7 @@ class CustomerService {
     String? birthDate,
   }) async {
     final body = <String, dynamic>{
+      if (title != null) 'title': title,
       if (username != null) 'username': username,
       if (firstName != null) 'firstName': firstName,
       if (lastName != null) 'lastName': lastName,

@@ -4,6 +4,7 @@ import '../models/household_item.dart';
 import '../services/api_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
@@ -151,18 +152,16 @@ class _ToBuyScreenState extends State<ToBuyScreen> {
                   onCheckout: () async {
                     final messenger = ScaffoldMessenger.of(context);
                     if (_checked.isEmpty) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(s.selectItemsFirst)),
-                      );
+                      AppSnackBar.show(
+                          messenger, s.selectItemsFirst, SnackKind.info);
                       return;
                     }
                     final n = _checked.length;
                     setState(() => _checkingOut = true);
                     await Future.delayed(const Duration(milliseconds: 500));
                     if (!mounted) return;
-                    messenger.showSnackBar(
-                      SnackBar(content: Text(s.checkoutDone(n))),
-                    );
+                    AppSnackBar.show(
+                        messenger, s.checkoutDone(n), SnackKind.success);
                     setState(() => _checkingOut = false);
                     _reload();
                   },

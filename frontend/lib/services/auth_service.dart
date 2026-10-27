@@ -44,21 +44,71 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> register({
+  /// Step 1 of registration: create a pending account and email an OTP.
+  /// Returns how long the OTP is valid for (seconds). No session yet.
+  Future<int> register({
     required String email,
+    required String title,
     required String username,
     required String firstName,
     required String lastName,
-    required String password,
   }) async {
     final res = await _client.post(
       _auth('/register'),
       headers: _jsonHeaders,
       body: jsonEncode({
         'email': email,
+        'title': title,
         'username': username,
         'firstName': firstName,
         'lastName': lastName,
+      }),
+    );
+    _ensureOk(res);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return (json['otpExpiresInSec'] as num?)?.toInt() ?? 600;
+  }
+
+  /// Step 2: verify the emailed OTP. Returns a short-lived setup ticket
+  /// required to set the password.
+  Future<String> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final res = await _client.post(
+      _auth('/verify-otp'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'email': email, 'otp': otp}),
+    );
+    _ensureOk(res);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return json['setupTicket'] as String;
+  }
+
+  /// Re-send a fresh OTP for an in-progress registration.
+  Future<int> resendOtp(String email) async {
+    final res = await _client.post(
+      _auth('/resend-otp'),
+      headers: _jsonHeaders,
+      body: jsonEncode({'email': email}),
+    );
+    _ensureOk(res);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return (json['otpExpiresInSec'] as num?)?.toInt() ?? 600;
+  }
+
+  /// Step 3: set the password, completing the account and logging in.
+  Future<void> setPassword({
+    required String email,
+    required String setupTicket,
+    required String password,
+  }) async {
+    final res = await _client.post(
+      _auth('/set-password'),
+      headers: _jsonHeaders,
+      body: jsonEncode({
+        'email': email,
+        'setupTicket': setupTicket,
         'password': password,
       }),
     );

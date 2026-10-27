@@ -5,6 +5,8 @@ import '../models/household_item.dart';
 import '../services/api_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/app_snackbar.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
@@ -31,21 +33,45 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       _api = ApiService(auth: AuthScope.of(context));
       _future = _api!.getItem(widget.itemId);
     }
+    // re-fetch whenever a mutation happens anywhere (edit/update/etc.) so the
+    // detail always shows fresh data when we return to it.
+    final rev = DataScope.watch(context);
+    if (rev != _rev) {
+      _rev = rev;
+      _future = _api!.getItem(widget.itemId);
+      _changed = true; // propagate back to the list on pop
+    }
   }
+
+  int _rev = 0;
 
   void _reload() => setState(() => _future = _api!.getItem(widget.itemId));
 
-  Future<void> _delete() async {
+  Future<void> _delete(HouseholdItem item) async {
     final s = context.strings;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: s.deleteItemConfirmTitle,
+      message: s.deleteItemConfirmMessage(item.name),
+      confirmLabel: s.delete,
+      cancelLabel: s.cancel,
+      icon: Icons.delete_outline_rounded,
+      danger: true,
+    );
+    if (!confirmed || !mounted) return;
+
     final messenger = ScaffoldMessenger.of(context);
     final dataRefresh = DataScope.of(context);
     setState(() => _deleting = true);
     try {
       await _api!.deleteItem(widget.itemId);
       dataRefresh.bump();
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) {
+        AppSnackBar.show(messenger, s.itemDeleted, SnackKind.success);
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(s.errorWith(e))));
+      AppSnackBar.show(messenger, s.errorWith(e), SnackKind.error);
       if (mounted) setState(() => _deleting = false);
     }
   }
@@ -157,7 +183,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     OutlinedButton.icon(
-                      onPressed: _deleting ? null : _delete,
+                      onPressed: _deleting ? null : () => _delete(item),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.danger,
                       ),

@@ -14,6 +14,9 @@ import {
   LoginRequest,
   RefreshRequest,
   RegisterRequest,
+  VerifyOtpRequest,
+  ResendOtpRequest,
+  SetPasswordRequest,
   ChangePasswordRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -29,9 +32,32 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 export class AuthController {
   constructor(private readonly auth: AuthUseCases) {}
 
+  /** Step 1: start registration — emails an OTP, no session yet. */
   @Post('register')
+  @HttpCode(200)
   register(@Body() body: RegisterRequest) {
     return this.auth.register(body);
+  }
+
+  /** Step 2: verify the OTP — returns a setup ticket. */
+  @Post('verify-otp')
+  @HttpCode(200)
+  verifyOtp(@Body() body: VerifyOtpRequest) {
+    return this.auth.verifyOtp(body);
+  }
+
+  /** Re-send a fresh OTP for an in-progress registration. */
+  @Post('resend-otp')
+  @HttpCode(200)
+  resendOtp(@Body() body: ResendOtpRequest) {
+    return this.auth.resendOtp(body.email);
+  }
+
+  /** Step 3: set the password — completes the account and logs in. */
+  @Post('set-password')
+  @HttpCode(200)
+  setPassword(@Body() body: SetPasswordRequest) {
+    return this.auth.setPassword(body);
   }
 
   @Post('login')

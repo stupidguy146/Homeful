@@ -25,6 +25,7 @@ export class CustomerHttpClient implements CustomerClientPort {
 
   async createProfile(params: {
     ssoId: string;
+    title?: string;
     username: string;
     firstName: string;
     lastName: string;

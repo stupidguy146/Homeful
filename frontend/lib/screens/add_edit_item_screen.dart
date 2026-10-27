@@ -7,19 +7,148 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../models/household_item.dart';
 import '../models/api_error.dart';
 import '../services/api_service.dart';
+import '../services/customer_service.dart';
 import '../services/product_lookup_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/app_strings.dart';
 import '../i18n/locale_scope.dart';
 import '../validators/item_form_validators.dart';
 
+/// Icon representing each item category (used in the category selector).
+IconData categoryIcon(ItemCategory c) {
+  switch (c) {
+    case ItemCategory.laundry:
+      return Icons.local_laundry_service_rounded;
+    case ItemCategory.kitchen:
+      return Icons.restaurant_rounded;
+    case ItemCategory.bathroom:
+      return Icons.bathtub_rounded;
+    case ItemCategory.food:
+      return Icons.fastfood_rounded;
+    case ItemCategory.personal:
+      return Icons.face_retouching_natural_rounded;
+    case ItemCategory.other:
+      return Icons.category_rounded;
+  }
+}
+
+/// Shows a bottom sheet letting the user choose how to add an item — scan a
+/// barcode or enter manually — then opens the add form accordingly.
+/// Returns true if an item was created.
+Future<bool> showAddItemFlow(BuildContext context) async {
+  final s = context.strings;
+  final mode = await showModalBottomSheet<String>(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: Theme.of(context).cardTheme.color,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+    ),
+    builder: (sheetContext) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(s.addItemHow, style: AppType.titleLarge),
+            const SizedBox(height: AppSpacing.lg),
+            _AddChoiceTile(
+              icon: Icons.qr_code_scanner_rounded,
+              title: s.scanBarcodeOption,
+              subtitle: s.scanBarcodeOptionHint,
+              onTap: () => Navigator.pop(sheetContext, 'scan'),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _AddChoiceTile(
+              icon: Icons.edit_note_rounded,
+              title: s.manualEntryOption,
+              subtitle: s.manualEntryOptionHint,
+              onTap: () => Navigator.pop(sheetContext, 'manual'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+  if (mode == null || !context.mounted) return false;
+  final created = await Navigator.push<bool>(
+    context,
+    MaterialPageRoute(
+      builder: (_) => AddEditItemScreen(autoScan: mode == 'scan'),
+    ),
+  );
+  return created == true;
+}
+
+class _AddChoiceTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _AddChoiceTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.rLg,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.rLg,
+          border: Border.all(color: AppColors.neutral300),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: AppColors.brand100,
+                borderRadius: AppRadius.rMd,
+              ),
+              child: Icon(icon, color: AppColors.brand500, size: 24),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: AppType.bodyMedium
+                          .copyWith(color: AppColors.neutral500)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.neutral400),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Add or edit a household item (form follows the homeful mockup).
 class AddEditItemScreen extends StatefulWidget {
   final HouseholdItem? existing;
-  const AddEditItemScreen({super.key, this.existing});
+
+  /// When true (add mode), open the barcode scanner automatically on entry.
+  final bool autoScan;
+  const AddEditItemScreen({super.key, this.existing, this.autoScan = false});
 
   @override
   State<AddEditItemScreen> createState() => _AddEditItemScreenState();
@@ -44,6 +173,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   bool _recurring = false;
   bool _saving = false;
   bool _lookingUpBarcode = false;
+  bool _didAutoScan = false;
+  bool _prefilledBuyer = false;
   String? _scannedBarcode;
   final _productLookup = ProductLookupService();
 
@@ -59,13 +190,20 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     _qty = TextEditingController(text: '${e?.quantity ?? 1}');
     _unitLabel = e?.unitLabel?.trim();
     if (_unitLabel?.isEmpty ?? false) _unitLabel = null;
-    _price = TextEditingController(text: '${e?.price ?? 0}');
+    // price: keep the existing value when editing; leave blank for new items
+    // so the user enters it themselves.
+    _price = TextEditingController(text: _isEdit ? '${e!.price}' : '');
     _store = TextEditingController(text: e?.store ?? '');
     _buyer = TextEditingController(text: e?.buyer ?? '');
     _category = e?.category ?? ItemCategory.other;
     _image = e?.imageBase64;
     _recurring = e?.notifyRecurring ?? false;
-    if (e?.purchaseDate != null) _purchaseDate = DateTime.tryParse(e!.purchaseDate!);
+    if (e?.purchaseDate != null) {
+      _purchaseDate = DateTime.tryParse(e!.purchaseDate!);
+    } else if (!_isEdit) {
+      // new item: default the purchase date to today
+      _purchaseDate = DateTime.now();
+    }
     if (e?.expiryDate != null) _expiryDate = DateTime.tryParse(e!.expiryDate!);
   }
 
@@ -73,6 +211,37 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _api ??= ApiService(auth: AuthScope.of(context));
+
+    // New item: default the buyer to the signed-in user's name, and (if asked)
+    // open the scanner automatically. Both run once.
+    if (!_isEdit) {
+      if (!_prefilledBuyer && _buyer.text.trim().isEmpty) {
+        _prefilledBuyer = true;
+        _prefillBuyerName();
+      }
+      if (widget.autoScan && !_didAutoScan) {
+        _didAutoScan = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scanBarcode());
+      }
+    }
+  }
+
+  /// Fetch the signed-in user's profile and default the buyer field to their
+  /// full name (falls back to username). Silent on failure.
+  Future<void> _prefillBuyerName() async {
+    try {
+      final profile =
+          await CustomerService(auth: AuthScope.of(context)).getMyProfile();
+      if (!mounted) return;
+      final name = profile.fullName.isNotEmpty
+          ? profile.fullName
+          : profile.username;
+      if (name.isNotEmpty && _buyer.text.trim().isEmpty) {
+        setState(() => _buyer.text = name);
+      }
+    } catch (_) {
+      /* leave buyer empty on failure */
+    }
   }
 
   @override
@@ -117,23 +286,32 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       final product = await _productLookup.lookup(barcode);
       if (!mounted) return;
       if (product == null) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(s.barcodeLookupNotFound)),
-        );
+        AppSnackBar.show(messenger, s.barcodeLookupNotFound, SnackKind.info);
         return;
       }
       setState(() {
-        _name.text = product.name;
+        _name.text = product.displayName;
         if (product.size != null) _size.text = product.size!;
         if (product.unit != null) _unit.text = product.unit!;
         if (product.category != null) _category = product.category!;
+        if (product.store != null && product.store!.isNotEmpty) {
+          _store.text = product.store!;
+        }
+        // default the purchase date to today if not already set
+        _purchaseDate ??= DateTime.now();
       });
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.barcodeLookupSuccess)),
-      );
+      // fetch the product image in the background and fill it in when ready
+      if (product.imageUrl != null && _image == null) {
+        final dataUrl =
+            await _productLookup.fetchImageAsDataUrl(product.imageUrl!);
+        if (mounted && dataUrl != null && _image == null) {
+          setState(() => _image = dataUrl);
+        }
+      }
+      AppSnackBar.show(messenger, s.barcodeLookupSuccess, SnackKind.success);
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(s.errorWith(e))));
+        AppSnackBar.show(messenger, s.errorWith(e), SnackKind.error);
       }
     } finally {
       if (mounted) setState(() => _lookingUpBarcode = false);
@@ -169,15 +347,15 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       }
       dataRefresh.bump();
       if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(s.itemSaved)));
+        AppSnackBar.show(messenger, s.itemSaved, SnackKind.success);
         Navigator.pop(context, true);
       }
     } on ApiError catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(s.errorForCode(e.code, fallback: e.message))),
-      );
+      AppSnackBar.show(
+          messenger, s.errorForCode(e.code, fallback: e.message),
+          SnackKind.error);
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(s.errorWith(e))));
+      AppSnackBar.show(messenger, s.errorWith(e), SnackKind.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -264,14 +442,34 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                     const SizedBox(height: AppSpacing.md),
                     DropdownButtonFormField<ItemCategory>(
                       initialValue: _category,
-                      decoration: InputDecoration(labelText: s.categoryLabel),
+                      decoration: InputDecoration(
+                        labelText: s.categoryLabel,
+                        prefixIcon: Icon(categoryIcon(_category)),
+                      ),
                       dropdownColor: Theme.of(context).cardTheme.color,
                       borderRadius: AppRadius.rMd,
+                      // In the closed field, show label only — the category
+                      // icon already appears as the prefixIcon (avoid 2 icons).
+                      selectedItemBuilder: (context) => ItemCategory.values
+                          .map((c) => Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                    s.categoryName(categoryToString(c))),
+                              ))
+                          .toList(),
                       items: ItemCategory.values
                           .map((c) => DropdownMenuItem(
                                 value: c,
-                                child:
-                                    Text(s.categoryName(categoryToString(c))),
+                                child: Row(
+                                  children: [
+                                    Icon(categoryIcon(c),
+                                        size: 20,
+                                        color: AppColors.brand500),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Text(s.categoryName(
+                                        categoryToString(c))),
+                                  ],
+                                ),
                               ))
                           .toList(),
                       onChanged: (v) =>

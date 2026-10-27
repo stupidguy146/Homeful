@@ -7,6 +7,7 @@ export interface CustomerClientPort {
   /** Provision a profile at registration. Returns nothing (or throws). */
   createProfile(params: {
     ssoId: string;
+    title?: string;
     username: string;
     firstName: string;
     lastName: string;

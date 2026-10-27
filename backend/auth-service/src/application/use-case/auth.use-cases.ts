@@ -1,29 +1,42 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID, randomBytes } from 'crypto';
+import { randomUUID, randomBytes, randomInt } from 'crypto';
 import {
   BCRYPT_ROUNDS,
   TOKEN_BYTES,
   RESET_TOKEN_TTL_MS,
+  OTP_DIGITS,
+  OTP_TTL_MS,
+  OTP_MAX_ATTEMPTS,
+  SETUP_TICKET_TTL_MS,
 } from '../../shared/constants';
 import * as bcrypt from 'bcryptjs';
 import {
   USER_REPOSITORY,
   UserRepositoryPort,
 } from '../../domain/port/user.repository.port';
+import {
+  PENDING_REGISTRATION_REPOSITORY,
+  PendingRegistrationRepositoryPort,
+} from '../../domain/port/pending-registration.repository.port';
 import { MAILER, MailerPort } from '../../domain/port/mailer.port';
 import {
   CUSTOMER_CLIENT,
   CustomerClientPort,
 } from '../../domain/port/customer.client.port';
 import { User } from '../../domain/model/user';
+import { PendingRegistration } from '../../domain/model/pending-registration';
 import { DomainError, AuthErrorCode } from '../../shared/errors';
 import {
   AuthResult,
   AuthTokens,
   LoginCommand,
   RegisterCommand,
+  RegisterResult,
+  VerifyOtpCommand,
+  VerifyOtpResult,
+  SetPasswordCommand,
 } from '../dto/commands';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -45,6 +58,8 @@ export class AuthUseCases {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly users: UserRepositoryPort,
+    @Inject(PENDING_REGISTRATION_REPOSITORY)
+    private readonly pending: PendingRegistrationRepositoryPort,
     @Inject(MAILER)
     private readonly mailer: MailerPort,
     @Inject(CUSTOMER_CLIENT)
@@ -64,35 +79,145 @@ export class AuthUseCases {
     );
   }
 
-  async register(cmd: RegisterCommand): Promise<AuthResult> {
+  /**
+   * Step 1 — start registration: validate uniqueness, create/replace a
+   * pending row, email a 6-digit OTP. No account or session is created yet.
+   */
+  async register(cmd: RegisterCommand): Promise<RegisterResult> {
     const email = cmd.email.toLowerCase().trim();
+
     const existing = await this.users.findByEmail(email);
     if (existing) {
       throw new DomainError(AuthErrorCode.EMAIL_ALREADY_USED);
     }
+    // fail fast if the username is already taken (before emailing an OTP)
+    const takenBy = await this.customer.findSsoIdByUsername(cmd.username);
+    if (takenBy) {
+      throw new DomainError(AuthErrorCode.USERNAME_TAKEN);
+    }
 
-    // provision the customer profile FIRST so a taken username fails before we
-    // create the credential (keeps the two stores consistent).
-    const ssoId = randomUUID();
-    await this.customer.createProfile({
-      ssoId,
+    const otp = this.generateOtp();
+    const otpHash = await bcrypt.hash(otp, BCRYPT_ROUNDS);
+    const pending = new PendingRegistration({
+      email,
+      title: cmd.title,
       username: cmd.username,
       firstName: cmd.firstName,
       lastName: cmd.lastName,
+      otpHash,
+      otpExpiresAt: new Date(Date.now() + OTP_TTL_MS),
+    });
+    await this.pending.upsertByEmail(pending);
+
+    try {
+      await this.mailer.sendOtpEmail(email, otp);
+    } catch {
+      /* dev: OTP logged by mailer */
+    }
+    return { email, otpExpiresInSec: Math.floor(OTP_TTL_MS / 1000) };
+  }
+
+  /**
+   * Step 2 — verify the OTP. On success, mark verified and issue a short-lived
+   * setup ticket required to set the password.
+   */
+  async verifyOtp(cmd: VerifyOtpCommand): Promise<VerifyOtpResult> {
+    const email = cmd.email.toLowerCase().trim();
+    const pending = await this.pending.findByEmail(email);
+    if (!pending) {
+      throw new DomainError(AuthErrorCode.PENDING_NOT_FOUND);
+    }
+    if (pending.isOtpExpired()) {
+      throw new DomainError(AuthErrorCode.OTP_EXPIRED);
+    }
+    if (pending.attempts >= OTP_MAX_ATTEMPTS) {
+      throw new DomainError(AuthErrorCode.TOO_MANY_OTP_ATTEMPTS);
+    }
+
+    const ok = await bcrypt.compare(cmd.otp, pending.otpHash);
+    if (!ok) {
+      pending.attempts += 1;
+      await this.pending.update(pending);
+      throw new DomainError(AuthErrorCode.INVALID_OTP);
+    }
+
+    pending.emailVerified = true;
+    pending.setupTicket = randomBytes(TOKEN_BYTES).toString('hex');
+    pending.setupTicketExpiresAt = new Date(Date.now() + SETUP_TICKET_TTL_MS);
+    pending.attempts = 0;
+    await this.pending.update(pending);
+
+    return { email, setupTicket: pending.setupTicket };
+  }
+
+  /** Re-send a fresh OTP for an in-progress registration. */
+  async resendOtp(emailRaw: string): Promise<RegisterResult> {
+    const email = emailRaw.toLowerCase().trim();
+    const pending = await this.pending.findByEmail(email);
+    if (!pending) {
+      throw new DomainError(AuthErrorCode.PENDING_NOT_FOUND);
+    }
+    const otp = this.generateOtp();
+    pending.otpHash = await bcrypt.hash(otp, BCRYPT_ROUNDS);
+    pending.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+    pending.attempts = 0;
+    await this.pending.update(pending);
+    try {
+      await this.mailer.sendOtpEmail(email, otp);
+    } catch {
+      /* dev: OTP logged by mailer */
+    }
+    return { email, otpExpiresInSec: Math.floor(OTP_TTL_MS / 1000) };
+  }
+
+  /**
+   * Step 3 — set the password and finish the account. Requires the setup
+   * ticket from verify-otp. Provisions the customer profile, creates the
+   * (already verified) user, deletes the pending row, and logs the user in.
+   */
+  async setPassword(cmd: SetPasswordCommand): Promise<AuthResult> {
+    const email = cmd.email.toLowerCase().trim();
+    const pending = await this.pending.findByEmail(email);
+    if (!pending) {
+      throw new DomainError(AuthErrorCode.PENDING_NOT_FOUND);
+    }
+    if (!pending.emailVerified) {
+      throw new DomainError(AuthErrorCode.EMAIL_NOT_VERIFIED);
+    }
+    if (!pending.isTicketValid(cmd.setupTicket)) {
+      throw new DomainError(AuthErrorCode.INVALID_SETUP_TICKET);
+    }
+
+    // guard against a race: email registered elsewhere in the meantime
+    const existing = await this.users.findByEmail(email);
+    if (existing) {
+      await this.pending.deleteByEmail(email);
+      throw new DomainError(AuthErrorCode.EMAIL_ALREADY_USED);
+    }
+
+    // provision the customer profile first (keeps the two stores consistent)
+    const ssoId = randomUUID();
+    await this.customer.createProfile({
+      ssoId,
+      title: pending.title,
+      username: pending.username,
+      firstName: pending.firstName,
+      lastName: pending.lastName,
     });
 
     const passwordHash = await bcrypt.hash(cmd.password, BCRYPT_ROUNDS);
-    const verifyToken = randomBytes(TOKEN_BYTES).toString('hex');
-    const user = User.create({ ssoId, email, passwordHash, verifyToken });
+    const user = User.create({ ssoId, email, passwordHash });
+    user.markEmailVerified(); // OTP already proved ownership
     const saved = await this.users.create(user);
 
-    const verifyUrl = `${this.appBaseUrl}/api/auth/verify-email?token=${verifyToken}`;
-    try {
-      await this.mailer.sendVerificationEmail(saved.email, verifyUrl);
-    } catch {
-      /* dev: link logged by mailer */
-    }
+    await this.pending.deleteByEmail(email);
     return this.buildResult(saved);
+  }
+
+  /** Generate a zero-padded numeric OTP of OTP_DIGITS length. */
+  private generateOtp(): string {
+    const max = 10 ** OTP_DIGITS;
+    return randomInt(0, max).toString().padStart(OTP_DIGITS, '0');
   }
 
   /** Login with either an email or a username. */

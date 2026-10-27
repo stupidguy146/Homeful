@@ -21,8 +21,27 @@ export class AuthProxyController {
   constructor(private readonly proxy: ProxyService) {}
 
   @Post('register')
+  @HttpCode(200)
   register(@Body() body: unknown) {
     return this.proxy.forwardToAuth('POST', '/auth/register', body);
+  }
+
+  @Post('verify-otp')
+  @HttpCode(200)
+  verifyOtp(@Body() body: unknown) {
+    return this.proxy.forwardToAuth('POST', '/auth/verify-otp', body);
+  }
+
+  @Post('resend-otp')
+  @HttpCode(200)
+  resendOtp(@Body() body: unknown) {
+    return this.proxy.forwardToAuth('POST', '/auth/resend-otp', body);
+  }
+
+  @Post('set-password')
+  @HttpCode(200)
+  setPassword(@Body() body: unknown) {
+    return this.proxy.forwardToAuth('POST', '/auth/set-password', body);
   }
 
   @Post('login')

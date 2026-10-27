@@ -6,6 +6,7 @@ export class CustomerPresenter {
     return {
       id: p.id,
       ssoId: p.ssoId,
+      title: p.title,
       username: p.username,
       firstName: p.firstName,
       lastName: p.lastName,

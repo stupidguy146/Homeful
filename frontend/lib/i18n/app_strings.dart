@@ -53,6 +53,98 @@ class AppStrings {
       _t('รหัสผ่านต้องยาวอย่างน้อย 8 ตัว', 'Password must be at least 8 chars');
   String get haveAccount => _t('มีบัญชีอยู่แล้ว?', 'Already have an account?');
 
+  // ---------- auth: title (honorific) ----------
+  String get title => _t('คำนำหน้า', 'Title');
+  String get selectTitle => _t('เลือกคำนำหน้า', 'Select a title');
+  String titleLabel(String code) {
+    switch (code) {
+      case 'mr':
+        return _t('นาย', 'Mr.');
+      case 'mrs':
+        return _t('นาง', 'Mrs.');
+      case 'ms':
+        return _t('นางสาว', 'Ms.');
+      default:
+        return _t('ไม่ระบุ', 'Unspecified');
+    }
+  }
+
+  String get continueLabel => _t('ถัดไป', 'Continue');
+
+  // ---------- auth: OTP verification ----------
+  String get verifyEmailTitle => _t('ยืนยันอีเมล', 'Verify your email');
+  String otpSentTo(String email) => _t(
+      'เราได้ส่งรหัส 6 หลักไปที่\n$email', 'We sent a 6-digit code to\n$email');
+  String get enterOtp => _t('กรอกรหัส OTP', 'Enter the OTP code');
+  String get otpMustBe6 => _t('รหัสต้องเป็นตัวเลข 6 หลัก', 'Code must be 6 digits');
+  String get verifyOtpButton => _t('ยืนยันรหัส', 'Verify code');
+  String get didntGetCode => _t('ไม่ได้รับรหัส?', "Didn't get the code?");
+  String get resendOtp => _t('ส่งรหัสใหม่', 'Resend code');
+  String resendOtpIn(int sec) =>
+      _t('ส่งรหัสใหม่ได้ใน $sec วินาที', 'Resend in $sec s');
+  String get otpResent => _t('ส่งรหัสใหม่แล้ว', 'A new code has been sent');
+  String get otpDevHint => _t(
+      '(dev: ดูรหัสใน console ของ auth-service)',
+      '(dev: see the code in the auth-service console)');
+
+  // ---------- auth: set password (after OTP) ----------
+  String get setPasswordTitle => _t('ตั้งรหัสผ่าน', 'Set your password');
+  String get setPasswordSubtitle => _t(
+      'ตั้งรหัสผ่านเพื่อเข้าใช้งานบัญชีของคุณ',
+      'Create a password to secure your account');
+  String get passwordLabel => _t('รหัสผ่าน', 'Password');
+  String get passwordRequirements => _t('เงื่อนไขรหัสผ่าน', 'Password requirements');
+  String get ruleMinLength => _t('อย่างน้อย 8 ตัวอักษร', 'At least 8 characters');
+  String get ruleUppercase =>
+      _t('มีตัวพิมพ์ใหญ่ (A-Z)', 'An uppercase letter (A-Z)');
+  String get ruleLowercase =>
+      _t('มีตัวพิมพ์เล็ก (a-z)', 'A lowercase letter (a-z)');
+  String get ruleDigit => _t('มีตัวเลข (0-9)', 'A number (0-9)');
+  String get ruleSpecial =>
+      _t('มีอักขระพิเศษ (!@#\$...)', 'A special character (!@#\$...)');
+  String get passwordStrength => _t('ระดับความปลอดภัย', 'Password strength');
+  String get strengthWeak => _t('อ่อน', 'Weak');
+  String get strengthFair => _t('พอใช้', 'Fair');
+  String get strengthGood => _t('ดี', 'Good');
+  String get strengthStrong => _t('แข็งแรง', 'Strong');
+  String get passwordTooWeak =>
+      _t('รหัสผ่านยังไม่ผ่านเงื่อนไข', 'Password does not meet the requirements');
+  String get createAccountButton => _t('สร้างบัญชี', 'Create account');
+
+  // ---------- auth: PIN & biometric ----------
+  String get setupPinTitle => _t('ตั้งรหัส PIN', 'Set up a PIN');
+  String get setupPinSubtitle => _t(
+      'ตั้ง PIN 6 หลักสำหรับปลดล็อกแอป',
+      'Create a 6-digit PIN to unlock the app');
+  String get confirmPinTitle => _t('ยืนยันรหัส PIN', 'Confirm your PIN');
+  String get confirmPinSubtitle =>
+      _t('กรอก PIN อีกครั้งเพื่อยืนยัน', 'Enter your PIN again to confirm');
+  String get pinMismatch => _t('PIN ไม่ตรงกัน ลองใหม่', 'PINs do not match, try again');
+  String get enterPinTitle => _t('กรอกรหัส PIN', 'Enter your PIN');
+  String get wrongPin => _t('PIN ไม่ถูกต้อง', 'Incorrect PIN');
+  String get useBiometric =>
+      _t('ใช้ลายนิ้วมือ / สแกนใบหน้า', 'Use fingerprint / face');
+  String get enableBiometric =>
+      _t('เปิดใช้ลายนิ้วมือ / สแกนใบหน้า', 'Enable fingerprint / face unlock');
+  String get biometricReason =>
+      _t('ยืนยันตัวตนเพื่อปลดล็อกแอป', 'Authenticate to unlock the app');
+  String get skipForNow => _t('ข้ามไปก่อน', 'Skip for now');
+  String get finish => _t('เสร็จสิ้น', 'Finish');
+  String get unlock => _t('ปลดล็อก', 'Unlock');
+  String get biometricNotAvailable => _t(
+      'อุปกรณ์นี้ไม่รองรับการสแกนลายนิ้วมือ/ใบหน้า',
+      'Biometric unlock is not available on this device');
+
+  // ---------- auth: change PIN (menu) ----------
+  String get changePin => _t('เปลี่ยนรหัส PIN', 'Change PIN');
+  String get changePinMenu =>
+      _t('PIN และการปลดล็อก', 'PIN & app lock');
+  String get enterCurrentPin => _t('กรอก PIN ปัจจุบัน', 'Enter current PIN');
+  String get enterCurrentPinSubtitle => _t(
+      'ยืนยัน PIN เดิมก่อนตั้งรหัสใหม่',
+      'Confirm your current PIN before setting a new one');
+  String get pinChanged => _t('เปลี่ยน PIN สำเร็จ', 'PIN updated');
+
   // ---------- auth: change password ----------
   String get security => _t('ความปลอดภัย', 'Security');
   String get changePassword => _t('เปลี่ยนรหัสผ่าน', 'Change password');
@@ -135,6 +227,16 @@ class AppStrings {
       'กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม',
       'Enter a number with no more than 2 decimal places');
   String get scanBarcode => _t('สแกนบาร์โค้ด', 'Scan barcode');
+  String get addItemHow =>
+      _t('เพิ่มสินค้าอย่างไร?', 'How do you want to add an item?');
+  String get scanBarcodeOption =>
+      _t('สแกนบาร์โค้ด', 'Scan a barcode');
+  String get scanBarcodeOptionHint => _t(
+      'ใช้กล้องสแกนแล้วเติมข้อมูลให้อัตโนมัติ',
+      'Use the camera and auto-fill the details');
+  String get manualEntryOption => _t('กรอกเอง', 'Enter manually');
+  String get manualEntryOptionHint =>
+      _t('กรอกข้อมูลสินค้าด้วยตัวเอง', 'Fill in the product details yourself');
   String get pointCameraAtBarcode =>
       _t('วางบาร์โค้ดสินค้าไว้ในกรอบกล้อง', 'Point the camera at a product barcode');
   String scannedBarcode(String code) => _t('บาร์โค้ด: $code', 'Barcode: $code');
@@ -187,6 +289,12 @@ class AppStrings {
       _t('กดปุ่ม + เพื่อเพิ่มสินค้าชิ้นแรก', 'Tap + to add your first item');
   String get itemSaved => _t('บันทึกสินค้าแล้ว', 'Item saved');
   String get deleteItem => _t('ลบสินค้า', 'Delete item');
+  String get deleteItemConfirmTitle => _t('ลบสินค้า?', 'Delete item?');
+  String deleteItemConfirmMessage(String name) => _t(
+      'คุณต้องการลบ "$name" ใช่ไหม? การลบนี้ย้อนกลับไม่ได้',
+      'Delete "$name"? This cannot be undone.');
+  String get delete => _t('ลบ', 'Delete');
+  String get itemDeleted => _t('ลบสินค้าแล้ว', 'Item deleted');
   String get purchaseHistory => _t('ประวัติการซื้อ', 'Purchase history');
   String categoryName(String c) {
     switch (c) {
@@ -326,6 +434,12 @@ class AppStrings {
     'WRONG_OLD_PASSWORD': 'รหัสผ่านเดิมไม่ถูกต้อง',
     'INVALID_VERIFY_TOKEN': 'ลิงก์ยืนยันไม่ถูกต้องหรือหมดอายุ',
     'INVALID_RESET_TOKEN': 'ลิงก์รีเซ็ตไม่ถูกต้องหรือหมดอายุ',
+    'PENDING_NOT_FOUND': 'ไม่พบคำขอสมัครสำหรับอีเมลนี้ กรุณาสมัครใหม่',
+    'INVALID_OTP': 'รหัส OTP ไม่ถูกต้อง',
+    'OTP_EXPIRED': 'รหัส OTP หมดอายุแล้ว กรุณาขอรหัสใหม่',
+    'TOO_MANY_OTP_ATTEMPTS': 'กรอกผิดหลายครั้งเกินไป กรุณาขอรหัสใหม่',
+    'EMAIL_NOT_VERIFIED': 'กรุณายืนยันอีเมลด้วยรหัส OTP ก่อน',
+    'INVALID_SETUP_TICKET': 'เซสชันตั้งรหัสผ่านหมดอายุ กรุณาเริ่มใหม่',
     // catalog / analytics
     'MONTH_NOT_FOUND': 'ไม่พบเดือนที่ระบุ',
     'ITEM_NOT_FOUND': 'ไม่พบรายการที่ระบุ',
@@ -349,6 +463,12 @@ class AppStrings {
     'WRONG_OLD_PASSWORD': 'Current password is incorrect',
     'INVALID_VERIFY_TOKEN': 'Verification link is invalid or expired',
     'INVALID_RESET_TOKEN': 'Reset link is invalid or expired',
+    'PENDING_NOT_FOUND': 'No pending registration for this email, please sign up again',
+    'INVALID_OTP': 'The OTP code is incorrect',
+    'OTP_EXPIRED': 'The OTP code has expired, request a new one',
+    'TOO_MANY_OTP_ATTEMPTS': 'Too many incorrect attempts, request a new code',
+    'EMAIL_NOT_VERIFIED': 'Please verify your email with the OTP first',
+    'INVALID_SETUP_TICKET': 'Setup session expired, please start over',
     'MONTH_NOT_FOUND': 'Month not found',
     'ITEM_NOT_FOUND': 'Item not found',
     'MISSING_SSO_ID': 'Please sign in',

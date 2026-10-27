@@ -3,6 +3,7 @@ import '../i18n/locale_scope.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/auth_scope.dart';
+import '../widgets/app_snackbar.dart';
 
 /// Step 1: request a reset email. Step 2 (ResetPasswordScreen) completes it
 /// with the token from the email (pasted manually in dev — no deep links yet).
@@ -145,9 +146,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         newPassword: _newCtrl.text,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.strings.resetSuccess)),
-        );
+        AppSnackBar.success(context, context.strings.resetSuccess);
         Navigator.popUntil(context, (r) => r.isFirst);
       }
     } on ApiError catch (e) {

@@ -7,7 +7,9 @@ import '../theme/app_tokens.dart';
 import '../i18n/locale_scope.dart';
 import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
+import '../widgets/app_lock_scope.dart';
 import 'change_password_screen.dart';
+import 'change_pin_screen.dart';
 import 'edit_profile_screen.dart';
 import 'home_screen.dart';
 import 'items_screen.dart';
@@ -196,10 +198,19 @@ class _MenuScreenState extends State<_MenuScreen> {
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.danger,
                           foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm),
                         ),
                         onPressed: () => Navigator.pop(dialogContext, true),
                         icon: const Icon(Icons.logout_rounded, size: 18),
-                        label: Text(s.logout),
+                        label: Flexible(
+                          child: Text(
+                            s.logout,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: false,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -211,7 +222,11 @@ class _MenuScreenState extends State<_MenuScreen> {
       ),
     );
     if (shouldLogout == true && mounted) {
-      await AuthScope.read(context).logout();
+      // read scopes before the first await to avoid using a stale context
+      final auth = AuthScope.read(context);
+      final lock = AppLockScope.read(context);
+      await lock.clear(); // remove local PIN/biometric so re-login is clean
+      await auth.logout(); // clears tokens + notifies → AuthGate → LoginScreen
     }
   }
 
@@ -283,6 +298,16 @@ class _MenuScreenState extends State<_MenuScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (_) => const ChangePasswordScreen()),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _MenuOption(
+                  icon: Icons.pin_rounded,
+                  label: s.changePinMenu,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ChangePinScreen()),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),

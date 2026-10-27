@@ -16,6 +16,12 @@ export const AuthErrorCode = {
   INVALID_RESET_TOKEN: 'INVALID_RESET_TOKEN',
   USERNAME_TAKEN: 'USERNAME_TAKEN',
   PROFILE_PROVISION_FAILED: 'PROFILE_PROVISION_FAILED',
+  PENDING_NOT_FOUND: 'PENDING_NOT_FOUND',
+  INVALID_OTP: 'INVALID_OTP',
+  OTP_EXPIRED: 'OTP_EXPIRED',
+  TOO_MANY_OTP_ATTEMPTS: 'TOO_MANY_OTP_ATTEMPTS',
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
+  INVALID_SETUP_TICKET: 'INVALID_SETUP_TICKET',
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 } as const;
@@ -56,6 +62,24 @@ export const AUTH_ERRORS: Record<
   },
   USERNAME_TAKEN: { message: 'Username is already taken', status: 409 },
   PROFILE_PROVISION_FAILED: { message: 'Failed to provision profile', status: 502 },
+  PENDING_NOT_FOUND: {
+    message: 'No pending registration for this email',
+    status: 404,
+  },
+  INVALID_OTP: { message: 'The OTP code is incorrect', status: 400 },
+  OTP_EXPIRED: { message: 'The OTP code has expired', status: 400 },
+  TOO_MANY_OTP_ATTEMPTS: {
+    message: 'Too many incorrect attempts, request a new code',
+    status: 429,
+  },
+  EMAIL_NOT_VERIFIED: {
+    message: 'Please verify your email with the OTP first',
+    status: 400,
+  },
+  INVALID_SETUP_TICKET: {
+    message: 'Setup session is invalid or expired',
+    status: 400,
+  },
   VALIDATION_ERROR: { message: 'Validation failed', status: 400 },
   INTERNAL_ERROR: { message: 'Internal server error', status: 500 },
 };

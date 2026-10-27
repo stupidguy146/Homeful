@@ -54,14 +54,14 @@ class SettingsScreen extends StatelessWidget {
                 Column(
                   children: [
                     _OptionRow(
-                      icon: Icons.flag_outlined,
+                      flag: '🇹🇭',
                       label: s.thai,
                       selected: locale.isThai,
                       onTap: () => locale.setLang('th'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _OptionRow(
-                      icon: Icons.language_rounded,
+                      flag: '🇬🇧',
                       label: s.english,
                       selected: !locale.isThai,
                       onTap: () => locale.setLang('en'),
@@ -104,12 +104,14 @@ class SettingsScreen extends StatelessWidget {
 }
 
 class _OptionRow extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? flag;
   final String label;
   final bool selected;
   final VoidCallback onTap;
   const _OptionRow({
-    required this.icon,
+    this.icon,
+    this.flag,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -139,9 +141,12 @@ class _OptionRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon,
-                color: selected ? AppColors.brand500 : AppColors.neutral500,
-                size: 22),
+            if (flag != null)
+              Text(flag!, style: const TextStyle(fontSize: 24))
+            else
+              Icon(icon,
+                  color: selected ? AppColors.brand500 : AppColors.neutral500,
+                  size: 22),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(label, style: theme.textTheme.titleMedium),

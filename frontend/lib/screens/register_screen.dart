@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/auth_scope.dart';
 import '../i18n/locale_scope.dart';
 import '../i18n/language_toggle.dart';
 import 'login_screen.dart';
+import 'otp_verify_screen.dart';
 
+/// Step 1 of the new registration flow: collect title + name + username +
+/// email (no password here). On submit we create a pending account and the
+/// backend emails a 6-digit OTP, then we move to [OtpVerifyScreen].
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -14,14 +19,14 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  static const _titles = ['mr', 'mrs', 'ms', 'unspecified'];
+
   final _formKey = GlobalKey<FormState>();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
-  final _confirmCtrl = TextEditingController();
-  bool _obscure = true;
+  String _title = 'unspecified';
   bool _loading = false;
   ApiError? _error;
   Object? _otherError;
@@ -32,8 +37,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _lastNameCtrl.dispose();
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
-    _passwordCtrl.dispose();
-    _confirmCtrl.dispose();
     super.dispose();
   }
 
@@ -44,15 +47,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _error = null;
       _otherError = null;
     });
+    final email = _emailCtrl.text.trim();
     try {
-      await AuthScope.read(context).register(
-        email: _emailCtrl.text.trim(),
+      final expiresInSec = await AuthScope.read(context).register(
+        email: email,
+        title: _title,
         username: _usernameCtrl.text.trim(),
         firstName: _firstNameCtrl.text.trim(),
         lastName: _lastNameCtrl.text.trim(),
-        password: _passwordCtrl.text,
       );
-      if (mounted) Navigator.pop(context);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OtpVerifyScreen(
+            email: email,
+            otpExpiresInSec: expiresInSec,
+          ),
+        ),
+      );
     } on ApiError catch (e) {
       setState(() => _error = e);
     } catch (e) {
@@ -88,15 +101,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (errorText != null) AuthErrorBanner(message: errorText),
+                    DropdownButtonFormField<String>(
+                      initialValue: _title,
+                      decoration: InputDecoration(
+                        labelText: s.title,
+                        prefixIcon: const Icon(Icons.person_outline_rounded),
+                      ),
+                      items: [
+                        for (final t in _titles)
+                          DropdownMenuItem(
+                            value: t,
+                            child: Text(s.titleLabel(t)),
+                          ),
+                      ],
+                      onChanged: _loading
+                          ? null
+                          : (v) => setState(() => _title = v ?? 'unspecified'),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: TextFormField(
                             controller: _firstNameCtrl,
+                            textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                               labelText: s.firstName,
-                              prefixIcon:
-                                  const Icon(Icons.badge_outlined),
+                              prefixIcon: const Icon(Icons.badge_outlined),
                             ),
                             validator: (v) => (v == null || v.trim().isEmpty)
                                 ? s.enterFirstName
@@ -107,9 +139,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _lastNameCtrl,
-                            decoration: InputDecoration(
-                              labelText: s.lastName,
-                            ),
+                            textInputAction: TextInputAction.next,
+                            decoration: InputDecoration(labelText: s.lastName),
                             validator: (v) => (v == null || v.trim().isEmpty)
                                 ? s.enterLastName
                                 : null,
@@ -120,6 +151,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: AppSpacing.md),
                     TextFormField(
                       controller: _usernameCtrl,
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z0-9._-]')),
+                      ],
                       decoration: InputDecoration(
                         labelText: s.username,
                         prefixIcon: const Icon(Icons.alternate_email_rounded),
@@ -134,40 +170,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         labelText: s.email,
                         prefixIcon: const Icon(Icons.mail_outline_rounded),
                       ),
-                      validator: (v) =>
-                          (v == null || !v.contains('@')) ? s.invalidEmail : null,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextFormField(
-                      controller: _passwordCtrl,
-                      obscureText: _obscure,
-                      decoration: InputDecoration(
-                        labelText: s.passwordMin8,
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                      validator: (v) =>
-                          (v == null || v.length < 8) ? s.passwordMin8Rule : null,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextFormField(
-                      controller: _confirmCtrl,
-                      obscureText: _obscure,
-                      decoration: InputDecoration(
-                        labelText: s.confirmPassword,
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      ),
-                      validator: (v) =>
-                          v != _passwordCtrl.text ? s.passwordsNotMatch : null,
+                      validator: (v) {
+                        final value = v?.trim() ?? '';
+                        final re = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                        return re.hasMatch(value) ? null : s.invalidEmail;
+                      },
+                      onFieldSubmitted: (_) => _loading ? null : _submit(),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     FilledButton(
@@ -179,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: CircularProgressIndicator(
                                   strokeWidth: 2.5, color: Colors.white),
                             )
-                          : Text(s.signUp),
+                          : Text(s.continueLabel),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Row(

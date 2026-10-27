@@ -22,6 +22,9 @@ export class CustomerRecord {
   @Column({ type: 'uuid' })
   ssoId: string;
 
+  @Column({ type: 'varchar', length: 20, default: 'unspecified' })
+  title: string;
+
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 60 })
   username: string;

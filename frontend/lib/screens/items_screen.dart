@@ -5,6 +5,8 @@ import '../models/household_item.dart';
 import '../services/api_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/app_snackbar.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
@@ -54,11 +56,40 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   Future<void> _openAdd() async {
-    final created = await Navigator.push<bool>(
+    final created = await showAddItemFlow(context);
+    if (created) _reload();
+  }
+
+  /// Confirm + delete an item (used by swipe-to-delete). Returns true if the
+  /// row should be dismissed (i.e. the item was actually deleted).
+  Future<bool> _confirmDelete(HouseholdItem item) async {
+    final s = context.strings;
+    final messenger = ScaffoldMessenger.of(context);
+    final dataRefresh = DataScope.of(context);
+    final confirmed = await showConfirmDialog(
       context,
-      MaterialPageRoute(builder: (_) => const AddEditItemScreen()),
+      title: s.deleteItemConfirmTitle,
+      message: s.deleteItemConfirmMessage(item.name),
+      confirmLabel: s.delete,
+      cancelLabel: s.cancel,
+      icon: Icons.delete_outline_rounded,
+      danger: true,
     );
-    if (created == true) _reload();
+    if (!confirmed) return false;
+    try {
+      await _api!.deleteItem(item.itemId);
+      dataRefresh.bump();
+      if (mounted) {
+        AppSnackBar.show(messenger, s.itemDeleted, SnackKind.success);
+        _reload();
+      }
+      return true;
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.show(messenger, s.errorWith(e), SnackKind.error);
+      }
+      return false;
+    }
   }
 
   @override
@@ -176,20 +207,35 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       itemCount: items.length,
                       separatorBuilder: (_, __) =>
                           const SizedBox(height: AppSpacing.md),
-                      itemBuilder: (context, i) => _ItemCard(
-                        item: items[i],
-                        baht: baht,
-                        onTap: () async {
-                          final changed = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  ItemDetailScreen(itemId: items[i].itemId),
-                            ),
-                          );
-                          if (changed == true) _reload();
-                        },
-                      ),
+                      itemBuilder: (context, i) {
+                        final item = items[i];
+                        return Dismissible(
+                          key: ValueKey(item.itemId),
+                          direction: DismissDirection.endToStart,
+                          // confirm (and perform) the delete here; the list is
+                          // reloaded on success so we return false to avoid a
+                          // double removal of the row.
+                          confirmDismiss: (_) async {
+                            await _confirmDelete(item);
+                            return false;
+                          },
+                          background: _SwipeDeleteBackground(label: s.delete),
+                          child: _ItemCard(
+                            item: item,
+                            baht: baht,
+                            onTap: () async {
+                              final changed = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ItemDetailScreen(itemId: item.itemId),
+                                ),
+                              );
+                              if (changed == true) _reload();
+                            },
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -207,6 +253,34 @@ class _ItemsScreenState extends State<ItemsScreen> {
             child: const Icon(Icons.add_rounded),
           );
         },
+      ),
+    );
+  }
+}
+
+class _SwipeDeleteBackground extends StatelessWidget {
+  final String label;
+  const _SwipeDeleteBackground({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.danger,
+        borderRadius: AppRadius.rLg,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: AppType.label.copyWith(color: Colors.white),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.delete_outline_rounded, color: Colors.white),
+        ],
       ),
     );
   }

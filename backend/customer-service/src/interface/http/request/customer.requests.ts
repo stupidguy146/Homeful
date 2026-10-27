@@ -1,6 +1,7 @@
 import { IsBase64OrDataUrl } from './validators';
 import {
   IsDateString,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -9,6 +10,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { TITLE_VALUES, Title } from '../../../domain/model/customer-profile';
 
 // username: 3-30 chars, letters/numbers/dot/underscore/hyphen
 const USERNAME_RE = /^[a-zA-Z0-9._-]+$/;
@@ -17,6 +19,10 @@ const USERNAME_RE = /^[a-zA-Z0-9._-]+$/;
 export class CreateProfileRequest {
   @IsUUID()
   ssoId: string;
+
+  @IsOptional()
+  @IsEnum(TITLE_VALUES, { message: 'invalid title' })
+  title?: Title;
 
   @IsString()
   @MinLength(3)
@@ -37,6 +43,10 @@ export class CreateProfileRequest {
 
 /** Inbound HTTP request DTO for updating the signed-in user's profile. */
 export class UpdateProfileRequest {
+  @IsOptional()
+  @IsEnum(TITLE_VALUES, { message: 'invalid title' })
+  title?: Title;
+
   @IsOptional()
   @IsString()
   @MinLength(3)

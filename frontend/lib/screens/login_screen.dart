@@ -161,15 +161,21 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 /// Gradient hero used at the top of auth screens.
+///
+/// Pass [onBack] to show a circular back button (same style used across the
+/// auth flow: white 18% surface + rounded arrow). When null, the home logo
+/// badge is shown instead (login/register entry screens).
 class AuthHero extends StatelessWidget {
   final String title;
   final String subtitle;
   final Widget? trailing;
+  final VoidCallback? onBack;
   const AuthHero({
     super.key,
     required this.title,
     required this.subtitle,
     this.trailing,
+    this.onBack,
   });
 
   @override
@@ -191,16 +197,31 @@ class AuthHero extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
+                if (onBack != null)
+                  Material(
                     color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: AppRadius.rLg,
+                    borderRadius: AppRadius.rMd,
+                    child: InkWell(
+                      onTap: onBack,
+                      borderRadius: AppRadius.rMd,
+                      child: const Padding(
+                        padding: EdgeInsets.all(AppSpacing.md),
+                        child: Icon(Icons.arrow_back_rounded,
+                            color: Colors.white, size: 22),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: AppRadius.rLg,
+                    ),
+                    child: const Icon(Icons.home_rounded,
+                        color: Colors.white, size: 30),
                   ),
-                  child: const Icon(Icons.home_rounded,
-                      color: Colors.white, size: 30),
-                ),
                 const Spacer(),
                 if (trailing != null) trailing!,
               ],

@@ -4,9 +4,14 @@
  * `username` is unique and also serves as a login identifier (auth resolves
  * username → ssoId through this service).
  */
+/** Allowed honorific titles (prefix). `unspecified` = user chose not to say. */
+export const TITLE_VALUES = ['mr', 'mrs', 'ms', 'unspecified'] as const;
+export type Title = (typeof TITLE_VALUES)[number];
+
 export interface CustomerProfileProps {
   id?: number; // running PK (assigned by DB); optional before persistence
   ssoId: string;
+  title: Title;
   username: string;
   firstName: string;
   lastName: string;
@@ -20,6 +25,7 @@ export interface CustomerProfileProps {
 export class CustomerProfile {
   readonly id?: number;
   readonly ssoId: string;
+  title: Title;
   username: string;
   firstName: string;
   lastName: string;
@@ -32,6 +38,7 @@ export class CustomerProfile {
   constructor(props: CustomerProfileProps) {
     this.id = props.id;
     this.ssoId = props.ssoId;
+    this.title = props.title;
     this.username = props.username;
     this.firstName = props.firstName;
     this.lastName = props.lastName;
@@ -45,6 +52,7 @@ export class CustomerProfile {
   /** Factory used when auth-service provisions a profile at registration. */
   static create(params: {
     ssoId: string;
+    title?: Title;
     username: string;
     firstName: string;
     lastName: string;
@@ -52,6 +60,7 @@ export class CustomerProfile {
     const now = new Date();
     return new CustomerProfile({
       ssoId: params.ssoId,
+      title: params.title ?? 'unspecified',
       username: params.username.trim(),
       firstName: params.firstName.trim(),
       lastName: params.lastName.trim(),
@@ -75,6 +84,7 @@ export class CustomerProfile {
 
   /** Apply partial updates, mutating only provided fields. */
   applyUpdate(patch: {
+    title?: Title;
     username?: string;
     firstName?: string;
     lastName?: string;
@@ -82,6 +92,7 @@ export class CustomerProfile {
     status?: string | null;
     birthDate?: string | null;
   }): void {
+    if (patch.title !== undefined) this.title = patch.title;
     if (patch.username !== undefined) this.username = patch.username;
     if (patch.firstName !== undefined) this.firstName = patch.firstName;
     if (patch.lastName !== undefined) this.lastName = patch.lastName;

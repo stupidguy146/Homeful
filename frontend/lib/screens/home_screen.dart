@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expiring_item.dart';
 import '../models/customer_profile.dart';
 import '../services/api_service.dart';
@@ -173,11 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final created = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(builder: (_) => const AddEditItemScreen()),
-          );
-          if (created == true) _reload();
+          final created = await showAddItemFlow(context);
+          if (created) _reload();
         },
         icon: const Icon(Icons.add_rounded),
         label: Text(s.addProduct),
@@ -354,14 +352,47 @@ class _AttentionCard extends StatelessWidget {
   }
 }
 
-class _BudgetCard extends StatelessWidget {
+class _BudgetCard extends StatefulWidget {
   final double spent;
   final NumberFormat baht;
   const _BudgetCard({required this.spent, required this.baht});
 
   @override
+  State<_BudgetCard> createState() => _BudgetCardState();
+}
+
+class _BudgetCardState extends State<_BudgetCard> {
+  static const _kBudgetKey = 'app_budget';
+  double _budget = 3000;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // re-read whenever the shared data revision bumps (e.g. budget changed)
+    DataScope.watch(context);
+    _loadBudget();
+  }
+
+  Future<void> _loadBudget() async {
+    final prefs = await SharedPreferences.getInstance();
+    final b = prefs.getDouble(_kBudgetKey);
+    if (b != null && mounted && b != _budget) {
+      setState(() => _budget = b);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final s = context.strings;
+    final spent = widget.spent;
+    final baht = widget.baht;
+    // progress = spent / budget, clamped to 0..1; guard divide-by-zero
+    final ratio = _budget > 0 ? (spent / _budget) : 0.0;
+    final progress = ratio.clamp(0.0, 1.0);
+    final pct = (ratio * 100).round();
+    final overBudget = spent > _budget;
+    final barColor = overBudget ? AppColors.danger : AppColors.brand500;
+
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
@@ -377,16 +408,35 @@ class _BudgetCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Text(baht.format(spent),
-              style: AppType.headlineMedium.copyWith(color: AppColors.brand600)),
+          // "spent / budget"
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(baht.format(spent),
+                  style: AppType.headlineMedium
+                      .copyWith(color: barColor)),
+              const SizedBox(width: AppSpacing.xs),
+              Text('/ ${baht.format(_budget)}',
+                  style: AppType.bodyMedium
+                      .copyWith(color: AppColors.neutral500)),
+            ],
+          ),
           const SizedBox(height: AppSpacing.sm),
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.pill),
-            child: const LinearProgressIndicator(
-              value: 0.65,
+            child: LinearProgressIndicator(
+              value: progress,
               minHeight: 8,
               backgroundColor: AppColors.neutral200,
-              valueColor: AlwaysStoppedAnimation(AppColors.brand500),
+              valueColor: AlwaysStoppedAnimation(barColor),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            s.ofBudgetUsed('$pct'),
+            style: AppType.caption.copyWith(
+              color: overBudget ? AppColors.danger : AppColors.neutral500,
             ),
           ),
         ],

@@ -43,11 +43,24 @@ export class DevMailerAdapter implements MailerPort, OnModuleInit {
     );
   }
 
+  async sendOtpEmail(to: string, otp: string): Promise<void> {
+    // Dev convenience: always surface the OTP in the console, even when the
+    // email itself is delivered to an external inbox (e.g. Ethereal preview).
+    this.logger.log(`[DEV OTP] to=${to} code=${otp}`);
+    await this.send(
+      to,
+      'รหัสยืนยันอีเมล (OTP)',
+      `รหัสยืนยันของคุณคือ ${otp} (หมดอายุใน 10 นาที)`,
+      `<p>รหัสยืนยันอีเมลของคุณคือ:</p>
+       <p style="font-size:28px;font-weight:bold;letter-spacing:6px;">${otp}</p>
+       <p>รหัสนี้จะหมดอายุใน 10 นาที หากคุณไม่ได้ร้องขอ สามารถเพิกเฉยอีเมลนี้ได้</p>`,
+    );
+  }
+
   async sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
     await this.send(
       to,
-      'รีเซ็ตรหัสผ่าน',
-      `รีเซ็ตรหัสผ่านโดยคลิกลิงก์นี้: ${resetUrl}`,
+      'รีเซ็ตรหัสผ่าน',      `รีเซ็ตรหัสผ่านโดยคลิกลิงก์นี้: ${resetUrl}`,
       `<p>มีคำขอรีเซ็ตรหัสผ่านสำหรับบัญชีนี้</p>
        <p><a href="${resetUrl}">ตั้งรหัสผ่านใหม่</a></p>
        <p>หรือคัดลอกลิงก์: ${resetUrl}</p>

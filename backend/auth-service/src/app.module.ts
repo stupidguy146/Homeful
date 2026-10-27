@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth.module';
 import { UserRecord } from './infrastructure/persistence/orm/user.persistence';
+import { PendingRegistrationRecord } from './infrastructure/persistence/orm/pending-registration.persistence';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { UserRecord } from './infrastructure/persistence/orm/user.persistence';
         username: config.get<string>('DB_USER', 'auth'),
         password: config.get<string>('DB_PASSWORD', 'auth_pass'),
         database: config.get<string>('DB_NAME', 'auth_db'),
-        entities: [UserRecord],
+        entities: [UserRecord, PendingRegistrationRecord],
         synchronize: true, // dev only
       }),
     }),

@@ -3,6 +3,7 @@ import '../i18n/locale_scope.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/auth_scope.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -41,9 +42,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         newPassword: _newCtrl.text,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.strings.changePasswordSuccess)),
-        );
+        AppSnackBar.success(context, context.strings.changePasswordSuccess);
         Navigator.pop(context);
       }
     } on ApiError catch (e) {

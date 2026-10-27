@@ -8,6 +8,7 @@ import '../models/customer_profile.dart';
 import '../services/customer_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
+import '../widgets/app_snackbar.dart';
 import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 
@@ -19,6 +20,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  static const _titles = ['mr', 'mrs', 'ms', 'unspecified'];
+
   CustomerService? _service;
   Future<CustomerProfile>? _future;
 
@@ -27,6 +30,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _usernameCtrl = TextEditingController();
   final _statusCtrl = TextEditingController();
 
+  String _title = 'unspecified';
   String? _avatar; // data URL or null
   bool _avatarTouched = false;
   DateTime? _birthDate;
@@ -43,6 +47,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<CustomerProfile> _load() async {
     final p = await _service!.getMyProfile();
     if (!_loadedOnce) {
+      _title = _titles.contains(p.title) ? p.title : 'unspecified';
       _firstNameCtrl.text = p.firstName;
       _lastNameCtrl.text = p.lastName;
       _usernameCtrl.text = p.username;
@@ -99,6 +104,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _saving = true);
     try {
       await _service!.updateMyProfile(
+        title: _title,
         username: _usernameCtrl.text.trim(),
         firstName: _firstNameCtrl.text.trim(),
         lastName: _lastNameCtrl.text.trim(),
@@ -108,19 +114,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       dataRefresh.bump();
       if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(s.profileSaved)),
-        );
+        AppSnackBar.show(messenger, s.profileSaved, SnackKind.success);
         Navigator.pop(context, true);
       }
     } on ApiError catch (e) {
       if (mounted) {
-        messenger.showSnackBar(SnackBar(
-            content: Text(s.errorWith(s.errorForCode(e.code, fallback: e.message)))));
+        AppSnackBar.show(
+            messenger, s.errorForCode(e.code, fallback: e.message),
+            SnackKind.error);
       }
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(s.errorWith(e))));
+        AppSnackBar.show(messenger, s.errorWith(e), SnackKind.error);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -170,6 +175,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const _VerifyEmailBanner(),
+                      DropdownButtonFormField<String>(
+                        initialValue: _title,
+                        decoration: InputDecoration(
+                          labelText: s.title,
+                          prefixIcon:
+                              const Icon(Icons.person_outline_rounded),
+                        ),
+                        items: [
+                          for (final t in _titles)
+                            DropdownMenuItem(
+                              value: t,
+                              child: Text(s.titleLabel(t)),
+                            ),
+                        ],
+                        onChanged: _saving
+                            ? null
+                            : (v) => setState(
+                                () => _title = v ?? 'unspecified'),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
                       Row(
                         children: [
                           Expanded(
@@ -422,9 +447,8 @@ class _VerifyEmailBannerState extends State<_VerifyEmailBanner> {
                         await auth.resendVerification();
                         if (mounted) setState(() => _sent = true);
                       } catch (_) {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(s.sendFailed)),
-                        );
+                        AppSnackBar.show(
+                            messenger, s.sendFailed, SnackKind.error);
                       } finally {
                         if (mounted) setState(() => _sending = false);
                       }

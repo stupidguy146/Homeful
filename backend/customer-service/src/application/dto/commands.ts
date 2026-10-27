@@ -1,13 +1,17 @@
 /** Application-level command shapes (framework-agnostic). */
 
+import { Title } from '../../domain/model/customer-profile';
+
 export interface CreateProfileCommand {
   ssoId: string;
+  title?: Title;
   username: string;
   firstName: string;
   lastName: string;
 }
 
 export interface UpdateProfileCommand {
+  title?: Title;
   username?: string;
   firstName?: string;
   lastName?: string;

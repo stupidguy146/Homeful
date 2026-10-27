@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRecord } from './infrastructure/persistence/orm/user.persistence';
+import { PendingRegistrationRecord } from './infrastructure/persistence/orm/pending-registration.persistence';
 import { UserRepositoryAdapter } from './infrastructure/persistence/user.repository.adapter';
+import { PendingRegistrationRepositoryAdapter } from './infrastructure/persistence/pending-registration.repository.adapter';
 import { USER_REPOSITORY } from './domain/port/user.repository.port';
+import { PENDING_REGISTRATION_REPOSITORY } from './domain/port/pending-registration.repository.port';
 import { MAILER } from './domain/port/mailer.port';
 import { DevMailerAdapter } from './infrastructure/mail/dev-mailer.adapter';
 import { CUSTOMER_CLIENT } from './domain/port/customer.client.port';
@@ -12,13 +15,19 @@ import { AuthController } from './interface/http/auth.controller';
 import { JwtAuthGuard } from './interface/http/jwt-auth.guard';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserRecord])],
+  imports: [
+    TypeOrmModule.forFeature([UserRecord, PendingRegistrationRecord]),
+  ],
   controllers: [AuthController],
   providers: [
     AuthUseCases,
     JwtAuthGuard,
     // Hexagonal wiring: bind the outbound ports to concrete adapters.
     { provide: USER_REPOSITORY, useClass: UserRepositoryAdapter },
+    {
+      provide: PENDING_REGISTRATION_REPOSITORY,
+      useClass: PendingRegistrationRepositoryAdapter,
+    },
     { provide: MAILER, useClass: DevMailerAdapter },
     { provide: CUSTOMER_CLIENT, useClass: CustomerHttpClient },
   ],

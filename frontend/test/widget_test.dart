@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:room_shopping_app/main.dart';
 import 'package:room_shopping_app/services/auth_service.dart';
+import 'package:room_shopping_app/services/app_lock_service.dart';
 import 'package:room_shopping_app/i18n/locale_controller.dart';
 import 'package:room_shopping_app/i18n/theme_controller.dart';
 
@@ -18,13 +19,14 @@ void main() {
       (WidgetTester tester) async {
     final auth = AuthService();
     await auth.bootstrap();
+    final lock = AppLockService();
     final locale = LocaleController();
     await locale.load();
     final theme = ThemeController();
     await theme.load();
 
     await tester.pumpWidget(
-      RoomShoppingApp(auth: auth, locale: locale, theme: theme),
+      RoomShoppingApp(auth: auth, lock: lock, locale: locale, theme: theme),
     );
     await tester.pumpAndSettle();
 
