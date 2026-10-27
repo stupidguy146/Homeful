@@ -1,0 +1,182 @@
+services:
+  # ---------- Databases (database-per-service) ----------
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: rsl-catalog-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: catalog
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - catalog_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  analytics-db:
+    image: postgres:16-alpine
+    container_name: rsl-analytics-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics_pass
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - analytics_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d analytics_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: rsl-auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth_pass
+      POSTGRES_DB: auth_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - auth_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  customer-db:
+    image: postgres:16-alpine
+    container_name: rsl-customer-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: customer
+      POSTGRES_PASSWORD: customer_pass
+      POSTGRES_DB: customer_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - customer_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U customer -d customer_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Services ----------
+  catalog-service:
+    build: ./backend/catalog-service
+    container_name: rsl-catalog-service
+    restart: unless-stopped
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: catalog-db
+      DB_PORT: 5432
+      DB_USER: catalog
+      DB_PASSWORD: catalog_pass
+      DB_NAME: catalog_db
+      PORT: 3001
+    ports:
+      - "3001:3001"
+
+  analytics-service:
+    build: ./backend/analytics-service
+    container_name: rsl-analytics-service
+    restart: unless-stopped
+    depends_on:
+      analytics-db:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
+    environment:
+      DB_HOST: analytics-db
+      DB_PORT: 5432
+      DB_USER: analytics
+      DB_PASSWORD: analytics_pass
+      DB_NAME: analytics_db
+      PORT: 3002
+      CATALOG_SERVICE_URL: http://catalog-service:3001
+    ports:
+      - "3002:3002"
+
+  auth-service:
+    build: ./backend/auth-service
+    container_name: rsl-auth-service
+    restart: unless-stopped
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+    environment:
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: auth
+      DB_PASSWORD: auth_pass
+      DB_NAME: auth_db
+      PORT: 3003
+      JWT_SECRET: ${JWT_SECRET:-dev_access_secret_change_me}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_change_me}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      CUSTOMER_SERVICE_URL: http://customer-service:3004
+    ports:
+      - "3003:3003"
+
+  customer-service:
+    build: ./backend/customer-service
+    container_name: rsl-customer-service
+    restart: unless-stopped
+    depends_on:
+      customer-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: customer-db
+      DB_PORT: 5432
+      DB_USER: customer
+      DB_PASSWORD: customer_pass
+      DB_NAME: customer_db
+      PORT: 3004
+    ports:
+      - "3004:3004"
+
+  api-gateway:
+    build: ./backend/api-gateway
+    container_name: rsl-api-gateway
+    restart: unless-stopped
+    depends_on:
+      catalog-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    environment:
+      PORT: 3000
+      CATALOG_SERVICE_URL: http://catalog-service:3001
+      ANALYTICS_SERVICE_URL: http://analytics-service:3002
+      AUTH_SERVICE_URL: http://auth-service:3003
+      CUSTOMER_SERVICE_URL: http://customer-service:3004
+      JWT_SECRET: ${JWT_SECRET:-dev_access_secret_change_me}
+    ports:
+      - "3000:3000"
+
+volumes:
+  catalog_pgdata:
+  analytics_pgdata:
+  auth_pgdata:
+  customer_pgdata:

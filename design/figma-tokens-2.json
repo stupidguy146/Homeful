@@ -1,0 +1,235 @@
+{
+    "global": {
+        "color": {
+            "primary": {
+                "blue": {
+                    "value": "#477FA8",
+                    "type": "color",
+                    "description": "Primary Blue - สีหลักของแอปและปุ่มหลัก"
+                },
+                "softBlue": {
+                    "value": "#EAF3F8",
+                    "type": "color",
+                    "description": "Soft Blue - สีพื้นหลังการ์ดหรือส่วนที่ต้องการเน้นแบบอ่อน"
+                },
+                "warmWhite": {
+                    "value": "#FAF9F6",
+                    "type": "color",
+                    "description": "Warm White - สีพื้นหลังหลักของแอป"
+                }
+            },
+            "secondary": {
+                "sageGreen": {
+                    "value": "#DCE9DF",
+                    "type": "color",
+                    "description": "Sage Green - สถานะปกติ (Normal)"
+                },
+                "amber": {
+                    "value": "#F7E7C6",
+                    "type": "color",
+                    "description": "Amber - สถานะใกล้หมด / เตรียมซื้อ (Warning)"
+                },
+                "coral": {
+                    "value": "#D98278",
+                    "type": "color",
+                    "description": "Coral - สถานะหมดแล้ว / ควรซื้อ (Alert)"
+                }
+            },
+            "neutral": {
+                "white": {
+                    "value": "#FFFFFF",
+                    "type": "color"
+                },
+                "textMain": {
+                    "value": "#2C3E50",
+                    "type": "color",
+                    "description": "สีข้อความหลัก"
+                },
+                "textMuted": {
+                    "value": "#7F8C8D",
+                    "type": "color",
+                    "description": "สีข้อความรอง / Placeholder"
+                },
+                "border": {
+                    "value": "#E2E8F0",
+                    "type": "color"
+                }
+            }
+        },
+        "fontFamilies": {
+            "main": {
+                "value": "Noto Sans Thai",
+                "type": "fontFamilies"
+            }
+        },
+        "lineHeights": {
+            "xs": {
+                "value": "120%",
+                "type": "lineHeights"
+            },
+            "sm": {
+                "value": "130%",
+                "type": "lineHeights"
+            },
+            "md": {
+                "value": "140%",
+                "type": "lineHeights"
+            },
+            "lg": {
+                "value": "150%",
+                "type": "lineHeights"
+            }
+        },
+        "fontWeights": {
+            "regular": {
+                "value": "400",
+                "type": "fontWeights"
+            },
+            "medium": {
+                "value": "500",
+                "type": "fontWeights"
+            },
+            "bold": {
+                "value": "700",
+                "type": "fontWeights"
+            }
+        },
+        "fontSize": {
+            "caption": {
+                "value": "12px",
+                "type": "fontSizes"
+            },
+            "body2": {
+                "value": "14px",
+                "type": "fontSizes"
+            },
+            "body1": {
+                "value": "16px",
+                "type": "fontSizes"
+            },
+            "subtitle": {
+                "value": "18px",
+                "type": "fontSizes"
+            },
+            "title": {
+                "value": "22px",
+                "type": "fontSizes"
+            },
+            "header": {
+                "value": "28px",
+                "type": "fontSizes"
+            }
+        },
+        "borderRadius": {
+            "sm": {
+                "value": "8px",
+                "type": "borderRadius"
+            },
+            "md": {
+                "value": "12px",
+                "type": "borderRadius"
+            },
+            "lg": {
+                "value": "20px",
+                "type": "borderRadius"
+            },
+            "pill": {
+                "value": "999px",
+                "type": "borderRadius"
+            }
+        },
+        "spacing": {
+            "xs": {
+                "value": "4px",
+                "type": "spacing"
+            },
+            "sm": {
+                "value": "8px",
+                "type": "spacing"
+            },
+            "md": {
+                "value": "16px",
+                "type": "spacing"
+            },
+            "lg": {
+                "value": "24px",
+                "type": "spacing"
+            },
+            "xl": {
+                "value": "32px",
+                "type": "spacing"
+            }
+        }
+    },
+    "ios": {
+        "typography": {
+            "navigationTitle": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.bold} {global.fontSize.subtitle}",
+                "type": "typography"
+            },
+            "cardTitle": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.bold} {global.fontSize.body1}",
+                "type": "typography"
+            },
+            "body": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.regular} {global.fontSize.body2}",
+                "type": "typography"
+            },
+            "statusBadge": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.medium} {global.fontSize.caption}",
+                "type": "typography"
+            }
+        },
+        "button": {
+            "primary": {
+                "background": "{global.color.primary.blue}",
+                "text": "{global.color.neutral.white}",
+                "radius": "{global.borderRadius.pill}"
+            },
+            "secondary": {
+                "background": "{global.color.primary.softBlue}",
+                "text": "{global.color.primary.blue}",
+                "radius": "{global.borderRadius.pill}"
+            }
+        },
+        "card": {
+            "background": "{global.color.neutral.white}",
+            "radius": "{global.borderRadius.lg}",
+            "padding": "{global.spacing.md}"
+        }
+    },
+    "web": {
+        "typography": {
+            "headerTitle": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.bold} {global.fontSize.header}",
+                "type": "typography"
+            },
+            "sectionTitle": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.bold} {global.fontSize.title}",
+                "type": "typography"
+            },
+            "body": {
+                "value": "{global.fontFamilies.main} {global.fontWeights.regular} {global.fontSize.body1}",
+                "type": "typography"
+            }
+        },
+        "layout": {
+            "sidebarWidth": {
+                "value": "240px",
+                "type": "sizing"
+            },
+            "cardRadius": {
+                "value": "{global.borderRadius.md}",
+                "type": "borderRadius"
+            }
+        }
+    },
+    "$themes": [],
+    "$metadata": {
+        "tokenSetOrder": [
+            "global",
+            "ios",
+            "web"
+        ]
+    }
+}

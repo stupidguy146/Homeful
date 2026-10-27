@@ -1,0 +1,45 @@
+name: room_shopping_app
+description: homeful - home consumable tracker (Flutter client)
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.2.2
+  intl: ^0.20.2
+  shared_preferences: ^2.3.2
+  image_picker: ^1.1.2
+  google_fonts: ^6.2.1
+  mobile_scanner: ^7.4.2
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logos/
+    - assets/images/icons/
+
+flutter_launcher_icons:
+  image_path: assets/images/icons/70cb0214-d638-425d-b5d6-4116b4b7a973.png
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#F8F9F5"
+  macos:
+    generate: true
+    image_path: assets/images/icons/70cb0214-d638-425d-b5d6-4116b4b7a973.png
+  web:
+    generate: true
+    image_path: assets/images/icons/70cb0214-d638-425d-b5d6-4116b4b7a973.png
+    background_color: "#F8F9F5"
+    theme_color: "#477FA8"

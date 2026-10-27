@@ -1,0 +1,362 @@
+/// Localized UI strings + API error-code messages for TH/EN.
+/// Resolve via AppStrings.of(lang). Parameterized text uses methods.
+class AppStrings {
+  final String lang; // 'th' | 'en'
+  const AppStrings(this.lang);
+
+  bool get _th => lang == 'th';
+  String _t(String th, String en) => _th ? th : en;
+
+  // ---------- generic ----------
+  String get appTitle => 'homeful';
+  String get appTagline => _t('จัดการของใช้ในบ้าน ให้ชีวิตง่ายขึ้น', 'Home Consumable Tracker');
+  String get save => _t('บันทึก', 'Save');
+  String get cancel => _t('ยกเลิก', 'Cancel');
+  String get retry => _t('ลองใหม่', 'Retry');
+  String get pieces => _t('ชิ้น', 'pcs');
+  String get bahtSymbol => '฿';
+
+  // ---------- auth: login ----------
+  String get welcomeBack => _t('ยินดีต้อนรับกลับ', 'Welcome back');
+  String get loginSubtitle =>
+      _t('เข้าสู่ระบบเพื่อจัดการรายการซื้อของ', 'Sign in to manage your shopping list');
+  String get email => _t('อีเมล', 'Email');
+  String get emailOrUsername => _t('อีเมลหรือชื่อผู้ใช้', 'Email or username');
+  String get enterIdentifier =>
+      _t('กรอกอีเมลหรือชื่อผู้ใช้', 'Enter email or username');
+  String get password => _t('รหัสผ่าน', 'Password');
+  String get signIn => _t('เข้าสู่ระบบ', 'Sign in');
+  String get noAccount => _t('ยังไม่มีบัญชี?', "Don't have an account?");
+  String get signUp => _t('สมัครสมาชิก', 'Sign up');
+  String get forgotPassword => _t('ลืมรหัสผ่าน?', 'Forgot password?');
+  String get invalidEmail => _t('กรอกอีเมลให้ถูกต้อง', 'Enter a valid email');
+  String get enterPassword => _t('กรอกรหัสผ่าน', 'Enter your password');
+
+  // ---------- auth: register ----------
+  String get createAccount => _t('สร้างบัญชีใหม่', 'Create account');
+  String get registerSubtitle => _t(
+      'เริ่มจัดการรายการซื้อของเข้าห้องของคุณ', 'Start managing your room shopping');
+  String get displayName => _t('ชื่อที่แสดง', 'Display name');
+  String get enterDisplayName => _t('กรอกชื่อที่แสดง', 'Enter a display name');
+  String get firstName => _t('ชื่อจริง', 'First name');
+  String get lastName => _t('นามสกุล', 'Last name');
+  String get username => _t('ชื่อผู้ใช้ (username)', 'Username');
+  String get enterFirstName => _t('กรอกชื่อจริง', 'Enter your first name');
+  String get enterLastName => _t('กรอกนามสกุล', 'Enter your last name');
+  String get usernameRule => _t(
+      'username ต้องยาว 3-30 ตัว (a-z, 0-9, . _ -)',
+      'Username must be 3-30 chars (a-z, 0-9, . _ -)');
+  String get confirmPassword => _t('ยืนยันรหัสผ่าน', 'Confirm password');
+  String get passwordMin8 =>
+      _t('รหัสผ่าน (อย่างน้อย 8 ตัว)', 'Password (min 8 chars)');
+  String get passwordMin8Rule =>
+      _t('รหัสผ่านต้องยาวอย่างน้อย 8 ตัว', 'Password must be at least 8 chars');
+  String get haveAccount => _t('มีบัญชีอยู่แล้ว?', 'Already have an account?');
+
+  // ---------- auth: change password ----------
+  String get security => _t('ความปลอดภัย', 'Security');
+  String get changePassword => _t('เปลี่ยนรหัสผ่าน', 'Change password');
+  String get oldPassword => _t('รหัสผ่านเดิม', 'Current password');
+  String get enterOldPassword => _t('กรอกรหัสผ่านเดิม', 'Enter current password');
+  String get newPasswordMin8 =>
+      _t('รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)', 'New password (min 8 chars)');
+  String get newPasswordMin8Rule => _t(
+      'รหัสผ่านใหม่ต้องยาวอย่างน้อย 8 ตัว', 'New password must be at least 8 chars');
+  String get confirmNewPassword =>
+      _t('ยืนยันรหัสผ่านใหม่', 'Confirm new password');
+  String get passwordsNotMatch => _t('รหัสผ่านไม่ตรงกัน', 'Passwords do not match');
+  String get saveNewPassword => _t('บันทึกรหัสผ่านใหม่', 'Save new password');
+  String get changePasswordSuccess =>
+      _t('เปลี่ยนรหัสผ่านสำเร็จ', 'Password changed');
+  String get logout => _t('ออกจากระบบ', 'Log out');
+
+  // ---------- auth: forgot / reset ----------
+  String get forgotTitle => _t('ลืมรหัสผ่าน', 'Forgot password');
+  String get forgotHint => _t('กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านไปให้',
+      "Enter your email and we'll send a reset link");
+  String get sendResetLink => _t('ส่งลิงก์รีเซ็ต', 'Send reset link');
+  String get resetSentInfo => _t(
+      'ถ้ามีบัญชีนี้อยู่ ระบบได้ส่งอีเมลรีเซ็ตให้แล้ว\n(dev: ดูลิงก์/preview ใน console ของ auth-service)',
+      'If the account exists, a reset email has been sent\n(dev: see the link/preview in the auth-service console)');
+  String get haveTokenAlready => _t('ฉันมีรหัส (token) แล้ว', 'I already have a token');
+  String get resetTitle => _t('ตั้งรหัสผ่านใหม่', 'Reset password');
+  String get tokenFromEmail => _t('รหัส (token) จากอีเมล', 'Token from email');
+  String get enterToken => _t('กรอก token', 'Enter the token');
+  String get resetSuccess => _t('ตั้งรหัสผ่านใหม่สำเร็จ เข้าสู่ระบบได้เลย',
+      'Password reset — you can sign in now');
+
+  // ---------- email verification ----------
+  String get emailNotVerified => _t('อีเมลยังไม่ได้ยืนยัน', 'Email not verified');
+  String get verificationSent => _t(
+      'ส่งอีเมลยืนยันแล้ว ตรวจกล่องจดหมาย (dev: ดู preview ใน console)',
+      'Verification email sent, check your inbox (dev: see preview in console)');
+  String get resend => _t('ส่งอีกครั้ง', 'Resend');
+  String get sending => _t('กำลังส่ง…', 'Sending…');
+  String get sendFailed => _t('ส่งไม่สำเร็จ', 'Failed to send');
+
+  // ---------- month list ----------
+  String get monthlySummary => _t('สรุปทุกเดือน', 'Monthly summary');
+  String get totalSpent => _t('ยอดรวมสะสม', 'Total spent');
+  String get monthsCount => _t('จำนวนเดือน', 'Months');
+  String get totalItems => _t('รวมรายการ', 'Items');
+  String get noMonths => _t('ยังไม่มีเดือน', 'No months yet');
+  String get noMonthsHint => _t(
+      'กดปุ่ม + ด้านล่างเพื่อเพิ่มเดือนแรกของคุณ', 'Tap + below to add your first month');
+  String get addMonth => _t('เพิ่มเดือน', 'Add month');
+  String get newMonth => _t('เพิ่มเดือนใหม่', 'New month');
+  String get monthLabel => _t('เดือน', 'Month');
+  String get yearCE => _t('ปี (ค.ศ.)', 'Year');
+  String get noteOptional => _t('โน้ต (ไม่บังคับ)', 'Note (optional)');
+  String monthN(int m) => _t('เดือน $m', 'Month $m');
+  String itemsCount(int n) => _t('$n รายการ', '$n items');
+  String quantityCount(int n) => _t('$n ชิ้น', '$n pcs');
+
+  // ---------- month detail ----------
+  String get monthSummaryTitle => _t('สรุปยอดเดือนนี้', 'This month');
+  String get total => _t('ยอดรวม', 'Total');
+  String get itemsLabel => _t('รายการ', 'Items');
+  String get piecesLabel => _t('ชิ้น', 'Pcs');
+  String get noItems => _t('ยังไม่มีรายการ', 'No items yet');
+  String get noItemsHint => _t('กดปุ่ม + เพื่อเพิ่มของชิ้นแรก', 'Tap + to add the first item');
+  String get addItem => _t('เพิ่มรายการ', 'Add item');
+  String get addItemTitle => _t('เพิ่มสินค้า', 'Add item');
+  String get editItemTitle => _t('แก้ไขสินค้า', 'Edit item');
+  String get itemName => _t('ชื่อสินค้า', 'Item name');
+  String get lettersNumbersSpacesOnly => _t(
+      'ใช้ได้เฉพาะตัวอักษร ตัวเลข และเว้นวรรค',
+      'Use letters, numbers, and spaces only');
+  String get lettersOnly => _t(
+      'ใช้ได้เฉพาะตัวอักษรและเว้นวรรค', 'Use letters and spaces only');
+  String get decimalNumberOnly => _t(
+      'กรอกเป็นตัวเลขทศนิยมเท่านั้น', 'Enter a decimal number only');
+  String get positiveIntegerOnly => _t(
+      'กรอกเป็นจำนวนเต็มที่มากกว่า 0', 'Enter a whole number greater than 0');
+  String get priceFormat => _t(
+      'กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม',
+      'Enter a number with no more than 2 decimal places');
+  String get scanBarcode => _t('สแกนบาร์โค้ด', 'Scan barcode');
+  String get pointCameraAtBarcode =>
+      _t('วางบาร์โค้ดสินค้าไว้ในกรอบกล้อง', 'Point the camera at a product barcode');
+  String scannedBarcode(String code) => _t('บาร์โค้ด: $code', 'Barcode: $code');
+  String get barcodeLookupNotFound => _t(
+      'ไม่พบข้อมูลสินค้า กรอกข้อมูลเองได้เลย',
+      'Product not found. You can enter the details manually.');
+  String get barcodeLookupSuccess => _t(
+      'เติมข้อมูลสินค้าแล้ว ตรวจสอบก่อนกดบันทึก',
+      'Product details filled in. Review them before saving.');
+  String get quantity => _t('จำนวน', 'Quantity');
+  String get unitPrice => _t('ราคา (บาท)', 'Price (THB)');
+  String get pickExpiry => _t('เลือกวันหมดอายุ (ไม่บังคับ)', 'Pick expiry date (optional)');
+  String expiryOn(String d) => _t('หมด: $d', 'Exp: $d');
+  String expireShort(String d) => _t('หมด $d', 'Exp $d');
+  String overdueDays(int d) => _t('เลยมา $d วัน', '$d days overdue');
+
+  // ---------- item fields (household item) ----------
+  String get itemsTitle => _t('ของใช้', 'Items');
+  String get searchItems => _t('ค้นหาสินค้า...', 'Search items...');
+  String get noMatchingItems => _t('ไม่พบรายการที่ค้นหา', 'No matching items found');
+  String get noMatchingItemsHint =>
+      _t('ลองเปลี่ยนคำค้นหาหรือหมวดหมู่', 'Try a different search or category');
+  String get clearFilters => _t('ล้างตัวกรอง', 'Clear filters');
+  String get categoryLabel => _t('หมวดหมู่', 'Category');
+  String get categoryAll => _t('ทั้งหมด', 'All');
+  String get sizeLabel => _t('ขนาด', 'Size');
+  String get unitFieldLabel => _t('หน่วย', 'Unit');
+  String get unitLabelField => _t('หน่วยนับ', 'Count unit');
+    String get noUnitCount => _t('ไม่ระบุ', 'None');
+    String get unitCountPiece => _t('ชิ้น', 'Piece');
+    String get unitCountBottle => _t('ขวด', 'Bottle');
+    String get unitCountCan => _t('กระป๋อง', 'Can');
+    String get unitCountBox => _t('กล่อง', 'Box');
+    String get unitCountPack => _t('แพ็ค', 'Pack');
+    String get unitCountBag => _t('ถุง', 'Bag');
+    String get unitCountRoll => _t('ม้วน', 'Roll');
+    String get unitCountTube => _t('หลอด', 'Tube');
+    String get unitCountSheet => _t('แผ่น', 'Sheet');
+    String get unitCountPair => _t('คู่', 'Pair');
+    String get unitCountJar => _t('กระปุก', 'Jar');
+    String get unitCountPacket => _t('ซอง', 'Packet');
+  String get storeLabel => _t('ร้านค้าที่ซื้อ', 'Store');
+  String get purchaseDateLabel => _t('วันที่ซื้อ', 'Purchase date');
+  String get buyerLabel => _t('ผู้ซื้อ', 'Buyer');
+  String get expiryLabel => _t('วันหมดอายุ', 'Expiry date');
+  String get recurringLabel => _t('ซื้อประจำ (แจ้งเตือน)', 'Recurring (notify)');
+  String get changePhoto => _t('เปลี่ยนรูปภาพ', 'Change photo');
+  String get noItemsYet => _t('ยังไม่มีของใช้', 'No items yet');
+  String get noItemsYetHint =>
+      _t('กดปุ่ม + เพื่อเพิ่มสินค้าชิ้นแรก', 'Tap + to add your first item');
+  String get itemSaved => _t('บันทึกสินค้าแล้ว', 'Item saved');
+  String get deleteItem => _t('ลบสินค้า', 'Delete item');
+  String get purchaseHistory => _t('ประวัติการซื้อ', 'Purchase history');
+  String categoryName(String c) {
+    switch (c) {
+      case 'laundry':
+        return _t('ซักล้าง', 'Laundry');
+      case 'kitchen':
+        return _t('ห้องครัว', 'Kitchen');
+      case 'bathroom':
+        return _t('ห้องน้ำ', 'Bathroom');
+      case 'food':
+        return _t('อาหารและเครื่องดื่ม', 'Food & drink');
+      case 'personal':
+        return _t('ของใช้ส่วนตัว', 'Personal');
+      default:
+        return _t('อื่นๆ', 'Other');
+    }
+  }
+
+
+  // ---------- expiring soon ----------
+  String get notifications => _t('แจ้งเตือน', 'Alerts');
+  String get expiringTitle => _t('ของใกล้หมดอายุ', 'Expiring soon');
+  String get noExpiring => _t('ไม่มีของใกล้หมด', 'Nothing expiring');
+
+  // ---------- stock status (4 แบบ) ----------
+  String get statusNormal => _t('ปกติ', 'In stock');
+  String get statusLow => _t('ใกล้หมด', 'Low');
+  String get statusShouldBuy => _t('ควรซื้อ', 'Buy soon');
+  String get statusOut => _t('หมดแล้ว', 'Out');
+  String noExpiringHint(int days) => _t(
+      'ไม่มีรายการที่จะหมดอายุภายใน $days วัน 🎉', 'No items expiring within $days days 🎉');
+  String withinDays(int d) => _t('≤ $d วัน', '≤ $d days');
+  String daysLeft(int d) => _t('อีก $d วัน', '$d days left');
+  String expiryWithQty(String d, int qty) =>
+      _t('หมด: $d · $qty ชิ้น', 'Exp: $d · $qty pcs');
+  String noExpiryWithQty(int qty) =>
+      _t('ไม่ระบุวันหมด · $qty ชิ้น', 'No expiry · $qty pcs');
+
+  // ---------- profile ----------
+  String get myProfile => _t('โปรไฟล์ของฉัน', 'My profile');
+  String get editProfile => _t('แก้ไขโปรไฟล์', 'Edit profile');
+  String get statusField => _t('สถานะ / คำอธิบายตัวเอง', 'Status / bio');
+  String get pickBirthDate => _t('เลือกวันเดือนปีเกิด', 'Pick birth date');
+  String birthDateOn(String d) => _t('วันเกิด: $d', 'Birthday: $d');
+  String get removePhoto => _t('ลบรูป', 'Remove photo');
+  String get profileSaved => _t('บันทึกโปรไฟล์แล้ว', 'Profile saved');
+  String get profileSaveFailed => _t('บันทึกไม่สำเร็จ', 'Save failed');
+
+  // ---------- budget ----------
+  String get budgetTitle => _t('งบประมาณ', 'Budget');
+  String get expectedSpend => _t('ค่าใช้จ่ายทั้งหมด', 'Total spend');
+  String get setBudget => _t('ตั้งงบประมาณ', 'Set budget');
+  String get budgetField => _t('งบประมาณ (บาท)', 'Budget (THB)');
+  String get spendByMonth => _t('ค่าใช้จ่ายรายเดือน', 'Spend by month');
+  String get spendByCategory => _t('ค่าใช้จ่ายตามหมวดหมู่', 'Spend by category');
+  String get noBudgetData =>
+      _t('ยังไม่มีข้อมูลค่าใช้จ่าย', 'No spending data yet');
+  String ofBudgetUsed(String pct) => _t('ใช้ไป $pct% ของงบ', '$pct% of budget used');
+  String get save2 => _t('บันทึก', 'Save');
+
+  // ---------- to-buy (shopping checklist) ----------
+  String get toBuyTitle => _t('ต้องซื้อ', 'To buy');
+  String get toBuyEmpty => _t('ไม่มีของที่ต้องซื้อ 🎉', 'Nothing to buy 🎉');
+  String get toBuyEmptyHint => _t(
+      'ของใช้ทุกชิ้นยังมีเพียงพอ', 'All your items are well stocked');
+  String get estimatedTotal => _t('ยอดรวมโดยประมาณ', 'Estimated total');
+  String get checkout => _t('ส่งซื้อ / ซื้อแล้ว', 'Mark as bought');
+  String checkoutDone(int n) =>
+      _t('ทำเครื่องหมายซื้อแล้ว $n รายการ', 'Marked $n items as bought');
+  String get selectItemsFirst =>
+      _t('เลือกรายการที่จะซื้อก่อน', 'Select items to buy first');
+
+  // ---------- common error prefixes ----------
+  String get cannotConnect => _t('เชื่อมต่อไม่ได้', 'Cannot connect');
+  String errorWith(Object e) => _t('เกิดข้อผิดพลาด: $e', 'Error: $e');
+
+  // ---------- language ----------
+  String get language => _t('ภาษา', 'Language');
+  String get thai => _t('ไทย', 'Thai');
+  String get english => _t('อังกฤษ', 'English');
+
+  // ---------- settings ----------
+  String get settings => _t('ตั้งค่า', 'Settings');
+    String get logoutConfirmTitle => _t('ออกจากระบบ?', 'Log out?');
+    String get logoutConfirmMessage => _t(
+            'คุณต้องการออกจากระบบใช่ไหม', 'Are you sure you want to log out?');
+  String get theme => _t('ธีม', 'Theme');
+  String get themeLight => _t('สว่าง', 'Light');
+  String get themeDark => _t('มืด', 'Dark');
+  String get themeSystem => _t('ตามระบบ', 'System');
+  String get appearance => _t('การแสดงผล', 'Appearance');
+
+  // ---------- bottom navigation ----------
+  String get navHome => _t('หน้าหลัก', 'Home');
+  String get navItems => _t('ของใช้', 'Items');
+  String get navToBuy => _t('ต้องซื้อ', 'To buy');
+  String get navBudget => _t('งบประมาณ', 'Budget');
+    String get navMenu => _t('เมนู', 'Menu');
+
+  // ---------- home dashboard ----------
+  String greeting(String name) => name.isEmpty
+      ? _t('สวัสดี 👋', 'Hi 👋')
+      : _t('สวัสดี, $name 👋', 'Hi, $name 👋');
+  String get homeQuestion =>
+      _t('บ้านของเราเป็นอย่างไรบ้าง?', "How's your home today?");
+  String get statAllItems => _t('ของใช้ทั้งหมด', 'All items');
+  String get statLowItems => _t('ใกล้หมด', 'Low stock');
+  String get statItemsUnit => _t('รายการ', 'items');
+  String get toManage => _t('รายการที่ต้องจัดการ', 'Needs attention');
+  String get seeAll => _t('ดูทั้งหมด', 'See all');
+  String get nothingToManage =>
+      _t('ไม่มีรายการที่ต้องจัดการ 🎉', 'Nothing needs attention 🎉');
+  String get monthlyBudget => _t('งบประมาณเดือนนี้', "This month's spend");
+  String get fromBudget => _t('จากงบประมาณ', 'of budget');
+  String get addProduct => _t('เพิ่มสินค้า', 'Add item');
+  String get comingSoon => _t('เร็ว ๆ นี้', 'Coming soon');
+  String get comingSoonHint =>
+      _t('ฟีเจอร์นี้กำลังพัฒนา', 'This feature is coming soon');
+
+  /// Resolve a backend error { domain, code, message } into a localized string.
+  /// Falls back to the backend-provided English message, then a generic text.
+  String errorForCode(String? code, {String? fallback}) {
+    final map = _th ? _errorsTh : _errorsEn;
+    if (code != null && map.containsKey(code)) return map[code]!;
+    if (fallback != null && fallback.isNotEmpty) return fallback;
+    return _t('เกิดข้อผิดพลาด', 'Something went wrong');
+  }
+
+  static const _errorsTh = <String, String>{
+    // auth
+    'EMAIL_ALREADY_USED': 'อีเมลนี้ถูกใช้งานแล้ว',
+    'INVALID_CREDENTIALS': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+    'USER_NOT_FOUND': 'ไม่พบผู้ใช้',
+    'INVALID_REFRESH_TOKEN': 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',
+    'MISSING_ACCESS_TOKEN': 'กรุณาเข้าสู่ระบบ',
+    'INVALID_ACCESS_TOKEN': 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',
+    'WRONG_OLD_PASSWORD': 'รหัสผ่านเดิมไม่ถูกต้อง',
+    'INVALID_VERIFY_TOKEN': 'ลิงก์ยืนยันไม่ถูกต้องหรือหมดอายุ',
+    'INVALID_RESET_TOKEN': 'ลิงก์รีเซ็ตไม่ถูกต้องหรือหมดอายุ',
+    // catalog / analytics
+    'MONTH_NOT_FOUND': 'ไม่พบเดือนที่ระบุ',
+    'ITEM_NOT_FOUND': 'ไม่พบรายการที่ระบุ',
+    'MISSING_SSO_ID': 'กรุณาเข้าสู่ระบบ',
+    'USERNAME_TAKEN': 'ชื่อผู้ใช้นี้ถูกใช้แล้ว',
+    'PROFILE_NOT_FOUND': 'ไม่พบโปรไฟล์',
+    'PROFILE_PROVISION_FAILED': 'สร้างโปรไฟล์ไม่สำเร็จ ลองใหม่อีกครั้ง',
+    'UPSTREAM_UNAVAILABLE': 'บริการขัดข้องชั่วคราว ลองใหม่อีกครั้ง',
+    // shared
+    'VALIDATION_ERROR': 'ข้อมูลไม่ถูกต้อง',
+    'INTERNAL_ERROR': 'เกิดข้อผิดพลาดภายในระบบ',
+  };
+
+  static const _errorsEn = <String, String>{
+    'EMAIL_ALREADY_USED': 'This email is already in use',
+    'INVALID_CREDENTIALS': 'Invalid email or password',
+    'USER_NOT_FOUND': 'User not found',
+    'INVALID_REFRESH_TOKEN': 'Session expired, please sign in again',
+    'MISSING_ACCESS_TOKEN': 'Please sign in',
+    'INVALID_ACCESS_TOKEN': 'Session expired, please sign in again',
+    'WRONG_OLD_PASSWORD': 'Current password is incorrect',
+    'INVALID_VERIFY_TOKEN': 'Verification link is invalid or expired',
+    'INVALID_RESET_TOKEN': 'Reset link is invalid or expired',
+    'MONTH_NOT_FOUND': 'Month not found',
+    'ITEM_NOT_FOUND': 'Item not found',
+    'MISSING_SSO_ID': 'Please sign in',
+    'USERNAME_TAKEN': 'This username is already taken',
+    'PROFILE_NOT_FOUND': 'Profile not found',
+    'PROFILE_PROVISION_FAILED': 'Could not create profile, try again',
+    'UPSTREAM_UNAVAILABLE': 'Service temporarily unavailable, try again',
+    'VALIDATION_ERROR': 'Invalid data',
+    'INTERNAL_ERROR': 'Internal error',
+  };
+}

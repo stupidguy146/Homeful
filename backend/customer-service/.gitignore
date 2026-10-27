@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+
+# local env — keep .env.example tracked
+.env
+!.env.example
