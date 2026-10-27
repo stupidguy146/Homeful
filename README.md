@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Room Shopping List — จดลิสต์ซื้อของเข้าห้องรายเดือน
 
 ระบบจดบันทึกรายการซื้อของเข้าห้องในแต่ละเดือน: ชื่อของ จำนวน ราคา วันหมด
@@ -155,3 +156,6 @@ curl "http://localhost:3000/api/analytics/expiring-soon?days=14"
 ## หมายเหตุสำหรับ dev/production
 - `synchronize: true` ใช้เฉพาะ dev (สร้างตารางอัตโนมัติ) — ก่อนขึ้น production ให้เปลี่ยนเป็น TypeORM migrations
 - ยังไม่มีระบบ auth (single-user) — ดู `docs/03-scalability.md` สำหรับแนวทางเพิ่มเมื่อระบบโต
+=======
+# Homeful
+>>>>>>> 71bab3f105c2e6940db09b46423954f2849732f5
