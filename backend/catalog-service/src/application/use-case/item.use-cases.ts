@@ -18,6 +18,14 @@ export class ItemUseCases {
   ) {}
 
   async create(cmd: CreateItemCommand): Promise<HouseholdItem> {
+    const purchaseDate = cmd.purchaseDate ?? null;
+    const recurringDays = cmd.recurringDays ?? null;
+    const expiryDate = this.resolveExpiryDate(
+      cmd.expiryDate ?? null,
+      cmd.notifyRecurring ?? false,
+      recurringDays,
+      purchaseDate,
+    );
     const item = new HouseholdItem({
       itemId: randomUUID(),
       ssoId: cmd.ssoId,
@@ -29,14 +37,38 @@ export class ItemUseCases {
       unitLabel: cmd.unitLabel ?? null,
       price: cmd.price,
       store: cmd.store ?? null,
-      purchaseDate: cmd.purchaseDate ?? null,
+      purchaseDate,
       buyer: cmd.buyer ?? null,
-      expiryDate: cmd.expiryDate ?? null,
+      expiryDate,
       imageBase64: cmd.imageBase64 ?? null,
       notifyRecurring: cmd.notifyRecurring ?? false,
+      recurringDays,
       createdAt: new Date(),
     });
     return this.repo.create(item);
+  }
+
+  /**
+   * For recurring items the user doesn't have to enter an expiry date — we
+   * derive it as (purchaseDate or today) + recurringDays. The user's own
+   * expiry date always wins when provided.
+   */
+  private resolveExpiryDate(
+    userExpiry: string | null,
+    notifyRecurring: boolean,
+    recurringDays: number | null,
+    purchaseDate: string | null,
+  ): string | null {
+    if (userExpiry) return userExpiry; // user value always wins
+    if (!notifyRecurring || !recurringDays || recurringDays <= 0) {
+      return null;
+    }
+    const base = purchaseDate
+      ? new Date(purchaseDate)
+      : new Date(new Date().toISOString().slice(0, 10));
+    if (isNaN(base.getTime())) return null;
+    base.setDate(base.getDate() + recurringDays);
+    return base.toISOString().slice(0, 10); // yyyy-mm-dd
   }
 
   async list(ssoId: string, category?: Category): Promise<HouseholdItem[]> {
@@ -69,6 +101,20 @@ export class ItemUseCases {
     if (cmd.imageBase64 !== undefined) item.imageBase64 = cmd.imageBase64;
     if (cmd.notifyRecurring !== undefined) {
       item.notifyRecurring = cmd.notifyRecurring;
+    }
+    if (cmd.recurringDays !== undefined) {
+      item.recurringDays = cmd.recurringDays;
+    }
+    // Recompute expiry for recurring items when the user hasn't set one. The
+    // user's explicit expiry date (if provided in this update) always wins.
+    if (cmd.expiryDate === undefined || cmd.expiryDate === null) {
+      const resolved = this.resolveExpiryDate(
+        cmd.expiryDate ?? null,
+        item.notifyRecurring,
+        item.recurringDays,
+        item.purchaseDate,
+      );
+      if (resolved) item.expiryDate = resolved;
     }
     return this.repo.update(item);
   }

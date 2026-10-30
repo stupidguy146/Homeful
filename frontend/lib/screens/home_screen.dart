@@ -5,9 +5,12 @@ import '../models/expiring_item.dart';
 import '../models/customer_profile.dart';
 import '../services/api_service.dart';
 import '../services/customer_service.dart';
+import '../services/notification_service.dart';
+import '../services/notification_read_store.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
+import '../widgets/notification_bell.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
 import 'add_edit_item_screen.dart';
@@ -25,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   ApiService? _api;
   CustomerService? _customer;
+  final _store = NotificationStore();
   Future<_HomeData>? _future;
 
   @override
@@ -49,16 +53,34 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<_HomeData> _load() async {
     final summary = await _api!.getSummary();
     final expiring = await _api!.getExpiringSoon(days: 30);
+    // keep OS reminders in sync on every home load (app start / after login /
+    // after add-edit-delete via DataScope). no-op on web.
+    if (mounted) {
+      await NotificationService.instance
+          .syncExpiring(expiring, context.strings);
+    }
     CustomerProfile? profile;
     try {
       profile = await _customer!.getMyProfile();
     } catch (_) {
       profile = null;
     }
+    // bell badge = expiring within threshold AND not yet read (local).
+    // reuse the same event store the notifications screen uses, so retention
+    // (7 days) and read-state stay consistent.
+    final expiringIds = expiring
+        .where((it) =>
+            (it.daysUntilExpiry ?? 9999) <=
+            NotificationService.thresholdDays)
+        .map((it) => it.itemId)
+        .toSet();
+    final events = await _store.sync(expiringIds);
+    final unread = events.where((e) => !e.read).length;
     return _HomeData(
         total: summary.grandTotal,
         totalItems: summary.totalItems,
         expiring: expiring,
+        unreadCount: unread,
         profile: profile);
   }
 
@@ -98,6 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _GreetingHeader(
                   greeting: s.greeting(name),
                   question: s.homeQuestion,
+                  expiringCount: data.unreadCount,
+                  onBellReturn: _reload,
                 ),
                 Transform.translate(
                   offset: const Offset(0, -28),
@@ -173,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_home',
         onPressed: () async {
           final created = await showAddItemFlow(context);
           if (created) _reload();
@@ -188,20 +213,26 @@ class _HomeData {
   final double total;
   final int totalItems;
   final List<ExpiringItem> expiring;
+  final int unreadCount;
   final CustomerProfile? profile;
   _HomeData(
       {required this.total,
       required this.totalItems,
       required this.expiring,
+      this.unreadCount = 0,
       this.profile});
 }
 
 class _GreetingHeader extends StatelessWidget {
   final String greeting;
   final String question;
+  final int expiringCount;
+  final VoidCallback? onBellReturn;
   const _GreetingHeader({
     required this.greeting,
     required this.question,
+    this.expiringCount = 0,
+    this.onBellReturn,
   });
 
   @override
@@ -220,13 +251,33 @@ class _GreetingHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              'assets/images/logos/1a97f22c-dd06-498b-83b7-f4da51fc5f24.png',
-              width: 64,
-              height: 64,
-              fit: BoxFit.contain,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: AppRadius.rLg,
+                    boxShadow: AppShadows.sm,
+                  ),
+                  child: Image.asset(
+                    'assets/images/logos/checkon_logo.png',
+                    height: 56,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const Spacer(),
+                NotificationBell(
+                  count: expiringCount,
+                  onReturn: onBellReturn,
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
             Text(greeting,
                 style: AppType.titleMedium
                     .copyWith(color: Colors.white.withValues(alpha: 0.9))),

@@ -15,6 +15,7 @@ export interface CreateItemCommand {
   expiryDate?: string | null;
   imageBase64?: string | null;
   notifyRecurring?: boolean;
+  recurringDays?: number | null;
 }
 
 export interface UpdateItemCommand {
@@ -31,4 +32,5 @@ export interface UpdateItemCommand {
   expiryDate?: string | null;
   imageBase64?: string | null;
   notifyRecurring?: boolean;
+  recurringDays?: number | null;
 }

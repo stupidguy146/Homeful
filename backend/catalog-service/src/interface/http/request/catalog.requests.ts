@@ -37,6 +37,7 @@ export class CreateItemRequest {
   @IsOptional() @IsDateString() expiryDate?: string;
   @IsOptional() @IsString() imageBase64?: string;
   @IsOptional() @IsBoolean() notifyRecurring?: boolean;
+  @IsOptional() @IsInt() @Min(1) @Max(3650) recurringDays?: number;
 }
 
 export class UpdateItemRequest {
@@ -53,4 +54,5 @@ export class UpdateItemRequest {
   @IsOptional() @IsDateString() expiryDate?: string;
   @IsOptional() @IsString() imageBase64?: string;
   @IsOptional() @IsBoolean() notifyRecurring?: boolean;
+  @IsOptional() @IsInt() @Min(1) @Max(3650) recurringDays?: number;
 }

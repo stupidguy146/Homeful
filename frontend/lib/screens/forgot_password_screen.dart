@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../i18n/locale_scope.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../widgets/app_snackbar.dart';
 
@@ -45,9 +46,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _Hero(
+            GradientHeader(
               title: s.forgotTitle,
-              onBack: () => Navigator.pop(context),
+              leading: HeaderIconButton(
+                icon: Icons.chevron_left_rounded,
+                onTap: () => Navigator.pop(context),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -165,9 +169,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _Hero(
+            GradientHeader(
               title: s.resetTitle,
-              onBack: () => Navigator.pop(context),
+              leading: HeaderIconButton(
+                icon: Icons.chevron_left_rounded,
+                onTap: () => Navigator.pop(context),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -227,49 +234,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Hero extends StatelessWidget {
-  final String title;
-  final VoidCallback onBack;
-  const _Hero({required this.title, required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xxxl, AppSpacing.xl, AppSpacing.xl),
-      decoration: const BoxDecoration(
-        gradient: AppGradients.brand,
-        borderRadius:
-            BorderRadius.vertical(bottom: Radius.circular(AppRadius.xxl)),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            Material(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: AppRadius.rMd,
-              child: InkWell(
-                onTap: onBack,
-                borderRadius: AppRadius.rMd,
-                child: const Padding(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  child: Icon(Icons.arrow_back_rounded,
-                      color: Colors.white, size: 22),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Text(title,
-                style: AppType.headlineMedium.copyWith(color: Colors.white)),
           ],
         ),
       ),

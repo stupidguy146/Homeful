@@ -109,11 +109,7 @@ export class AuthUseCases {
     });
     await this.pending.upsertByEmail(pending);
 
-    try {
-      await this.mailer.sendOtpEmail(email, otp);
-    } catch {
-      /* dev: OTP logged by mailer */
-    }
+    this.dispatchOtpEmail(email, otp);
     return { email, otpExpiresInSec: Math.floor(OTP_TTL_MS / 1000) };
   }
 
@@ -162,11 +158,7 @@ export class AuthUseCases {
     pending.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
     pending.attempts = 0;
     await this.pending.update(pending);
-    try {
-      await this.mailer.sendOtpEmail(email, otp);
-    } catch {
-      /* dev: OTP logged by mailer */
-    }
+    this.dispatchOtpEmail(email, otp);
     return { email, otpExpiresInSec: Math.floor(OTP_TTL_MS / 1000) };
   }
 
@@ -218,6 +210,17 @@ export class AuthUseCases {
   private generateOtp(): string {
     const max = 10 ** OTP_DIGITS;
     return randomInt(0, max).toString().padStart(OTP_DIGITS, '0');
+  }
+
+  /**
+   * Send the OTP email without blocking the response. The OTP is already
+   * persisted before this runs, so delivery is a best-effort side-effect —
+   * a slow/unreachable SMTP server must not delay (or fail) registration.
+   */
+  private dispatchOtpEmail(email: string, otp: string): void {
+    void this.mailer.sendOtpEmail(email, otp).catch(() => {
+      /* best-effort: OTP is logged by the dev mailer */
+    });
   }
 
   /** Login with either an email or a username. */

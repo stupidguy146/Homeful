@@ -1,6 +1,9 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/product.dart';
+import '../models/purchase.dart';
 import '../services/api_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
@@ -8,8 +11,12 @@ import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
 
-/// Budget dashboard built from /api/analytics/summary.
-/// Budget target is stored locally (shared_preferences) — no backend change.
+/// Monthly budget + summary (merged screen).
+///
+/// Shows, for a selectable month, the spend from purchases vs a locally-stored
+/// budget target, plus purchase stats, category / buyer breakdowns, and the
+/// list of purchases. Budget target is per-month-compared and stored in
+/// shared_preferences (shared with the home budget card via the same key).
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
 
@@ -17,28 +24,65 @@ class BudgetScreen extends StatefulWidget {
   State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
+/// Everything the month view needs, fetched together.
+class _MonthData {
+  final MonthlySummary summary;
+  final List<Purchase> purchases;
+  final Map<String, Product> productsById;
+  final List<MonthSpend> spendSeries; // last N months, oldest→newest
+  _MonthData(
+      this.summary, this.purchases, this.productsById, this.spendSeries);
+}
+
 class _BudgetScreenState extends State<BudgetScreen> {
   static const _kBudgetKey = 'app_budget';
   ApiService? _api;
-  Future<AnalyticsSummary>? _future;
+  Future<_MonthData>? _future;
   double _budget = 3000;
+  late DateTime _month; // first day of selected month
+  int _rev = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _month = DateTime(now.year, now.month);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_api == null) {
       _api = ApiService(auth: AuthScope.of(context));
-      _future = _api!.getSummary();
+      _future = _load();
       _loadBudget();
     }
     final rev = DataScope.watch(context);
     if (rev != _rev) {
       _rev = rev;
-      if (_api != null) _future = _api!.getSummary();
+      _future = _load();
+      _loadBudget();
     }
   }
 
-  int _rev = 0;
+  String get _monthKey =>
+      '${_month.year.toString().padLeft(4, '0')}-${_month.month.toString().padLeft(2, '0')}';
+
+  Future<_MonthData> _load() async {
+    final key = _monthKey;
+    final results = await Future.wait([
+      _api!.getMonthlySummary(key),
+      _api!.getPurchasesByMonth(key),
+      _api!.getProducts(),
+      _api!.getSpendByMonth(months: 6),
+    ]);
+    final summary = results[0] as MonthlySummary;
+    final purchases = results[1] as List<Purchase>;
+    final products = results[2] as List<Product>;
+    final spendSeries = results[3] as List<MonthSpend>;
+    final byId = {for (final p in products) p.productId: p};
+    return _MonthData(summary, purchases, byId, spendSeries);
+  }
 
   Future<void> _loadBudget() async {
     final prefs = await SharedPreferences.getInstance();
@@ -46,7 +90,17 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (b != null && mounted) setState(() => _budget = b);
   }
 
-  void _reload() => setState(() => _future = _api!.getSummary());
+  void _reload() => setState(() => _future = _load());
+
+  /// Jump directly to a month (from tapping a bar in the chart).
+  void _selectMonth(DateTime m) {
+    final target = DateTime(m.year, m.month);
+    if (target.year == _month.year && target.month == _month.month) return;
+    setState(() {
+      _month = target;
+      _future = _load();
+    });
+  }
 
   Future<void> _editBudget() async {
     final s = context.strings;
@@ -75,135 +129,67 @@ class _BudgetScreenState extends State<BudgetScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble(_kBudgetKey, v);
       if (mounted) setState(() => _budget = v);
-      dataRefresh.bump(); // let other screens (home card) pick up the new budget
+      dataRefresh.bump(); // let the home budget card pick up the new budget
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final s = context.strings;
-    final baht = NumberFormat.currency(
-        locale: context.locale.lang, symbol: '฿', decimalDigits: 0);
+    final now = DateTime.now();
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async => _reload(),
-        child: FutureBuilder<AnalyticsSummary>(
-          future: _future,
-          builder: (context, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const SkeletonList();
-            }
-            if (snap.hasError) {
-              return ErrorView(error: snap.error!, onRetry: _reload);
-            }
-            final data = snap.data!;
-            final pct = _budget > 0
-                ? (data.grandTotal / _budget * 100).clamp(0, 999)
-                : 0.0;
-
-            return ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const _Header(),
-                Transform.translate(
-                  offset: const Offset(0, -28),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: _TotalCard(
-                      total: data.grandTotal,
-                      budget: _budget,
-                      pct: pct.toDouble(),
-                      baht: baht,
-                      onSetBudget: _editBudget,
-                    ),
-                  ),
-                ),
-                if (data.grandTotal == 0)
-                  Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: EmptyState(
-                      icon: Icons.account_balance_wallet_outlined,
-                      title: s.noBudgetData,
-                    ),
-                  )
-                else ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-                    child: SectionHeader(title: s.spendByMonth),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: AppCard(
-                      child: _BarChart(
-                        months: data.months,
-                        locale: context.locale.lang,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-                    child: SectionHeader(title: s.spendByCategory),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: AppCard(
-                      child: Column(
-                        children: [
-                          for (final c in data.categories)
-                            _CategoryRow(
-                              category: c.category,
-                              amount: c.amount,
-                              total: data.grandTotal,
-                              baht: baht,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 90),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.strings;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xxl, AppSpacing.xl, AppSpacing.xxxl),
-      decoration: const BoxDecoration(
-        gradient: AppGradients.brand,
-        borderRadius:
-            BorderRadius.vertical(bottom: Radius.circular(AppRadius.xxl)),
-      ),
-      child: SafeArea(
-        bottom: false,
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(s.budgetTitle,
-                style: AppType.headlineMedium.copyWith(color: Colors.white)),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              s.expectedSpend,
-              style: AppType.bodyLarge
-                  .copyWith(color: Colors.white.withValues(alpha: 0.9)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
+              child: Row(
+                children: [
+                  Text(s.budgetTitle,
+                      style: Theme.of(context).textTheme.headlineMedium),
+                ],
+              ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: MonthNavigator(
+                month: _month,
+                onChanged: _selectMonth,
+                locale: context.locale.lang,
+                firstMonth: DateTime(2020, 1),
+                lastMonth: DateTime(now.year, now.month),
+                prevTooltip: s.prevMonth,
+                nextTooltip: s.nextMonth,
+                pickerTitle: s.selectMonth,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async => _reload(),
+                child: FutureBuilder<_MonthData>(
+                  future: _future,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const SkeletonList();
+                    }
+                    if (snap.hasError) {
+                      return ErrorView(error: snap.error!, onRetry: _reload);
+                    }
+                    final data = snap.data!;
+                    return _Body(
+                      data: data,
+                      budget: _budget,
+                      selectedMonth: _month,
+                      onSetBudget: _editBudget,
+                      onSelectMonth: _selectMonth,
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -212,14 +198,216 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _TotalCard extends StatelessWidget {
-  final double total;
+class _Body extends StatelessWidget {
+  final _MonthData data;
+  final double budget;
+  final DateTime selectedMonth;
+  final VoidCallback onSetBudget;
+  final ValueChanged<DateTime> onSelectMonth;
+  const _Body({
+    required this.data,
+    required this.budget,
+    required this.selectedMonth,
+    required this.onSetBudget,
+    required this.onSelectMonth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.strings;
+    final baht = NumberFormat.currency(
+        locale: context.locale.lang, symbol: '฿', decimalDigits: 0);
+    final df = DateFormat('d MMM yyyy', context.locale.lang);
+    final summary = data.summary;
+    final pct = budget > 0
+        ? (summary.grandTotal / budget * 100).clamp(0, 999).toDouble()
+        : 0.0;
+    // A past month is finished — setting/comparing a budget for it is
+    // meaningless, so we only show the budget card for the current month.
+    final now = DateTime.now();
+    final isPast = selectedMonth.year < now.year ||
+        (selectedMonth.year == now.year && selectedMonth.month < now.month);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 90),
+      children: [
+        if (isPast)
+          _SpentTotalCard(spent: summary.grandTotal, baht: baht)
+        else
+          _BudgetCard(
+            spent: summary.grandTotal,
+            budget: budget,
+            pct: pct,
+            baht: baht,
+            onSetBudget: onSetBudget,
+          ),
+
+        // monthly spend bar chart (purchase-based) — tap a bar to select it
+        if (data.spendSeries.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          SectionHeader(title: s.spendByMonth),
+          const SizedBox(height: AppSpacing.sm),
+          AppCard(
+            child: _BarChart(
+              months: data.spendSeries,
+              locale: context.locale.lang,
+              selectedMonth: selectedMonth,
+              onSelectMonth: onSelectMonth,
+            ),
+          ),
+        ],
+
+        const SizedBox(height: AppSpacing.lg),
+
+        // purchase stats
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                label: s.totalPurchasesLabel,
+                value: '${summary.totalPurchases}',
+                icon: Icons.receipt_long_rounded,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _StatCard(
+                label: s.totalQtyLabel,
+                value: '${summary.totalQty}',
+                icon: Icons.inventory_2_rounded,
+              ),
+            ),
+          ],
+        ),
+
+        if (summary.byCategory.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          SectionHeader(title: s.spendByCategory),
+          const SizedBox(height: AppSpacing.sm),
+          AppCard(
+            child: Column(
+              children: [
+                Center(
+                  child: _PieChart(
+                    slices: [
+                      for (var i = 0; i < summary.byCategory.length; i++)
+                        _Slice(summary.byCategory[i].amount, _sliceColor(i)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                for (var i = 0; i < summary.byCategory.length; i++)
+                  _CategoryRow(
+                    category: summary.byCategory[i].category,
+                    amount: summary.byCategory[i].amount,
+                    total: summary.grandTotal,
+                    baht: baht,
+                    color: _sliceColor(i),
+                  ),
+              ],
+            ),
+          ),
+        ],
+
+        if (summary.byBuyer.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          SectionHeader(title: s.byBuyerTitle),
+          const SizedBox(height: AppSpacing.sm),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: _PieChart(
+                    slices: [
+                      for (var i = 0; i < summary.byBuyer.length; i++)
+                        _Slice(summary.byBuyer[i].amount, _sliceColor(i)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                for (var i = 0; i < summary.byBuyer.length; i++)
+                  _BreakdownRow(
+                    label: summary.byBuyer[i].buyer.trim().isEmpty
+                        ? s.unknownBuyer
+                        : summary.byBuyer[i].buyer,
+                    value: baht.format(summary.byBuyer[i].amount),
+                    percent: summary.grandTotal > 0
+                        ? summary.byBuyer[i].amount / summary.grandTotal * 100
+                        : 0,
+                    color: _sliceColor(i),
+                  ),
+              ],
+            ),
+          ),
+        ],
+
+        const SizedBox(height: AppSpacing.lg),
+        SectionHeader(title: s.purchasesThisMonth),
+        const SizedBox(height: AppSpacing.sm),
+        if (data.purchases.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+            child: EmptyState(
+              icon: Icons.shopping_bag_outlined,
+              title: s.noPurchasesThisMonth,
+            ),
+          )
+        else
+          ...data.purchases.map((p) {
+            final name = data.productsById[p.productId]?.name ?? '—';
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: _PurchaseCard(
+                name: name,
+                purchase: p,
+                baht: baht,
+                dateText:
+                    s.purchasedOn(df.format(DateTime.parse(p.purchasedAt))),
+                qtyUnit: s.pieces,
+              ),
+            );
+          }),
+      ],
+    );
+  }
+}
+
+/// Read-only spend total shown for past months (no budget target / progress,
+/// since setting a budget for a finished month is meaningless).
+class _SpentTotalCard extends StatelessWidget {
+  final double spent;
+  final NumberFormat baht;
+  const _SpentTotalCard({required this.spent, required this.baht});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.strings;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(s.grandTotalLabel,
+              style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text(baht.format(spent),
+              style: AppType.displayLarge.copyWith(color: AppColors.brand600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _BudgetCard extends StatelessWidget {
+  final double spent;
   final double budget;
   final double pct;
   final NumberFormat baht;
   final VoidCallback onSetBudget;
-  const _TotalCard({
-    required this.total,
+  const _BudgetCard({
+    required this.spent,
     required this.budget,
     required this.pct,
     required this.baht,
@@ -235,11 +423,10 @@ class _TotalCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // title + "set budget" action on one row
           Row(
             children: [
               Expanded(
-                child: Text(s.expectedSpend,
+                child: Text(s.grandTotalLabel,
                     style: Theme.of(context).textTheme.bodyMedium),
               ),
               Material(
@@ -268,7 +455,7 @@ class _TotalCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(baht.format(total),
+          Text(baht.format(spent),
               style: AppType.displayLarge.copyWith(
                   color: over ? AppColors.danger : AppColors.brand600)),
           const SizedBox(height: AppSpacing.sm),
@@ -293,50 +480,41 @@ class _TotalCard extends StatelessWidget {
   }
 }
 
-/// Simple container-based monthly bar chart (no chart library).
+/// Monthly spend bar chart (no chart library). Bars are tappable — tapping a
+/// bar selects that month. The selected month's bar is highlighted.
 class _BarChart extends StatelessWidget {
   final List<MonthSpend> months;
   final String locale;
-  const _BarChart({required this.months, required this.locale});
+  final DateTime selectedMonth;
+  final ValueChanged<DateTime> onSelectMonth;
+  const _BarChart({
+    required this.months,
+    required this.locale,
+    required this.selectedMonth,
+    required this.onSelectMonth,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (months.isEmpty) {
-      return const SizedBox(height: 80);
-    }
     final maxAmount =
         months.map((m) => m.amount).fold<double>(0, (a, b) => a > b ? a : b);
+    final selKey =
+        '${selectedMonth.year.toString().padLeft(4, '0')}-${selectedMonth.month.toString().padLeft(2, '0')}';
     return SizedBox(
-      height: 160,
+      height: 168,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           for (final m in months)
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    NumberFormat.compact(locale: locale).format(m.amount),
-                    style: AppType.caption,
-                  ),
-                  const SizedBox(height: 4),
-                  FractionallySizedBox(
-                    widthFactor: 0.5,
-                    child: Container(
-                      height: maxAmount > 0
-                          ? (m.amount / maxAmount) * 100 + 4
-                          : 4,
-                      decoration: const BoxDecoration(
-                        gradient: AppGradients.brand,
-                        borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(AppRadius.sm)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(_label(m.month), style: AppType.caption),
-                ],
+              child: _Bar(
+                amount: m.amount,
+                maxAmount: maxAmount,
+                label: _label(m.month),
+                selected: m.month == selKey,
+                amountLabel: NumberFormat.compact(locale: locale)
+                    .format(m.amount),
+                onTap: () => onSelectMonth(_parse(m.month)),
               ),
             ),
         ],
@@ -344,12 +522,239 @@ class _BarChart extends StatelessWidget {
     );
   }
 
+  DateTime _parse(String yyyymm) {
+    final p = yyyymm.split('-');
+    return DateTime(int.parse(p[0]), int.parse(p[1]));
+  }
+
   String _label(String yyyymm) {
-    // yyyy-mm → short month
-    final parts = yyyymm.split('-');
-    if (parts.length < 2) return yyyymm;
-    final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]));
-    return DateFormat('MMM', locale).format(dt);
+    final p = yyyymm.split('-');
+    if (p.length < 2) return yyyymm;
+    return DateFormat('MMM', locale).format(DateTime(int.parse(p[0]), int.parse(p[1])));
+  }
+}
+
+class _Bar extends StatelessWidget {
+  final double amount;
+  final double maxAmount;
+  final String label;
+  final String amountLabel;
+  final bool selected;
+  final VoidCallback onTap;
+  const _Bar({
+    required this.amount,
+    required this.maxAmount,
+    required this.label,
+    required this.amountLabel,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final barHeight = maxAmount > 0 ? (amount / maxAmount) * 100 + 4 : 4.0;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.rSm,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            amountLabel,
+            style: AppType.caption.copyWith(
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w400,
+              color: selected ? AppColors.brand600 : null,
+            ),
+          ),
+          const SizedBox(height: 4),
+          FractionallySizedBox(
+            widthFactor: selected ? 0.66 : 0.5,
+            child: Container(
+              height: barHeight,
+              decoration: BoxDecoration(
+                gradient: selected ? AppGradients.brand : null,
+                color: selected ? null : AppColors.brand100,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(AppRadius.sm)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: AppType.caption.copyWith(
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w400,
+              color: selected ? AppColors.brand600 : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Distinct, cycling palette for pie slices (brand + accent + semantic).
+const List<Color> _sliceColors = [
+  AppColors.brand500,
+  AppColors.accent500,
+  AppColors.success,
+  AppColors.shouldBuy,
+  AppColors.brand300,
+  AppColors.warning,
+  AppColors.danger,
+  AppColors.neutral400,
+];
+
+Color _sliceColor(int i) => _sliceColors[i % _sliceColors.length];
+
+/// One slice of a pie: a value and the color to draw it with.
+class _Slice {
+  final double value;
+  final Color color;
+  const _Slice(this.value, this.color);
+}
+
+/// Donut pie chart drawn with CustomPaint (no chart dependency).
+class _PieChart extends StatelessWidget {
+  final List<_Slice> slices;
+  const _PieChart({required this.slices});
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 150.0;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _PiePainter(
+          slices: slices,
+          gapColor: Theme.of(context).cardTheme.color ?? AppColors.neutral0,
+        ),
+      ),
+    );
+  }
+}
+
+class _PiePainter extends CustomPainter {
+  final List<_Slice> slices;
+  final Color gapColor;
+  _PiePainter({required this.slices, required this.gapColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final total = slices.fold<double>(0, (a, s) => a + s.value);
+    final rect = Offset.zero & size;
+    final center = rect.center;
+    final radius = size.shortestSide / 2;
+
+    if (total <= 0) {
+      // nothing to show → draw a light ring so the area isn't empty
+      final p = Paint()
+        ..color = AppColors.neutral200
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(center, radius, p);
+    } else {
+      var start = -math.pi / 2; // start at 12 o'clock
+      for (final s in slices) {
+        if (s.value <= 0) continue;
+        final sweep = (s.value / total) * 2 * math.pi;
+        final paint = Paint()
+          ..color = s.color
+          ..style = PaintingStyle.fill;
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: radius),
+          start,
+          sweep,
+          true,
+          paint,
+        );
+        start += sweep;
+      }
+    }
+
+    // punch a hole in the middle → donut
+    final hole = Paint()..color = gapColor;
+    canvas.drawCircle(center, radius * 0.56, hole);
+  }
+
+  @override
+  bool shouldRepaint(_PiePainter old) =>
+      old.slices != slices || old.gapColor != gapColor;
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  const _StatCard(
+      {required this.label, required this.value, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppColors.brand500),
+          const SizedBox(height: AppSpacing.sm),
+          Text(value,
+              style: Theme.of(context).textTheme.titleMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 2),
+          Text(label,
+              style: AppType.caption.copyWith(color: AppColors.neutral600),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis),
+        ],
+      ),
+    );
+  }
+}
+
+class _BreakdownRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final double percent;
+  final Color color;
+  const _BreakdownRow({
+    required this.label,
+    required this.value,
+    required this.percent,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(label,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text('${percent.toStringAsFixed(0)}%',
+              style: AppType.caption.copyWith(color: AppColors.neutral500)),
+          const SizedBox(width: AppSpacing.md),
+          Text(value,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
   }
 }
 
@@ -358,11 +763,13 @@ class _CategoryRow extends StatelessWidget {
   final double amount;
   final double total;
   final NumberFormat baht;
+  final Color color;
   const _CategoryRow({
     required this.category,
     required this.amount,
     required this.total,
     required this.baht,
+    required this.color,
   });
 
   IconData get _icon {
@@ -394,10 +801,10 @@ class _CategoryRow extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: AppColors.brand100,
+              color: color.withValues(alpha: 0.18),
               borderRadius: AppRadius.rMd,
             ),
-            child: Icon(_icon, color: AppColors.brand500, size: 20),
+            child: Icon(_icon, color: color, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -413,8 +820,7 @@ class _CategoryRow extends StatelessWidget {
                     value: (pct / 100).clamp(0.0, 1.0),
                     minHeight: 6,
                     backgroundColor: AppColors.neutral200,
-                    valueColor:
-                        const AlwaysStoppedAnimation(AppColors.brand400),
+                    valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
               ],
@@ -430,6 +836,58 @@ class _CategoryRow extends StatelessWidget {
               Text('${pct.toStringAsFixed(0)}%', style: AppType.caption),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PurchaseCard extends StatelessWidget {
+  final String name;
+  final Purchase purchase;
+  final NumberFormat baht;
+  final String dateText;
+  final String qtyUnit;
+  const _PurchaseCard({
+    required this.name,
+    required this.purchase,
+    required this.baht,
+    required this.dateText,
+    required this.qtyUnit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = [
+      '${purchase.quantity} $qtyUnit',
+      if ((purchase.store ?? '').isNotEmpty) purchase.store!,
+      dateText,
+    ].join(' · ');
+    return AppCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(meta,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(baht.format(purchase.subtotal),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800)),
         ],
       ),
     );

@@ -8,7 +8,7 @@ class AppStrings {
   String _t(String th, String en) => _th ? th : en;
 
   // ---------- generic ----------
-  String get appTitle => 'homeful';
+  String get appTitle => 'Checkon';
   String get appTagline => _t('จัดการของใช้ในบ้าน ให้ชีวิตง่ายขึ้น', 'Home Consumable Tracker');
   String get save => _t('บันทึก', 'Save');
   String get cancel => _t('ยกเลิก', 'Cancel');
@@ -239,6 +239,11 @@ class AppStrings {
       _t('กรอกข้อมูลสินค้าด้วยตัวเอง', 'Fill in the product details yourself');
   String get pointCameraAtBarcode =>
       _t('วางบาร์โค้ดสินค้าไว้ในกรอบกล้อง', 'Point the camera at a product barcode');
+  String get cameraPermissionDenied => _t(
+      'ไม่ได้รับอนุญาตให้ใช้กล้อง\nเปิดสิทธิ์กล้องให้แอปในหน้าตั้งค่า',
+      'Camera permission denied.\nEnable camera access for this app in Settings.');
+  String get cameraError =>
+      _t('เปิดกล้องไม่ได้ ลองใหม่อีกครั้ง', 'Unable to open the camera. Please try again.');
   String scannedBarcode(String code) => _t('บาร์โค้ด: $code', 'Barcode: $code');
   String get barcodeLookupNotFound => _t(
       'ไม่พบข้อมูลสินค้า กรอกข้อมูลเองได้เลย',
@@ -253,8 +258,73 @@ class AppStrings {
   String expireShort(String d) => _t('หมด $d', 'Exp $d');
   String overdueDays(int d) => _t('เลยมา $d วัน', '$d days overdue');
 
+  // ---------- notifications ----------
+  String get notiExpiringTitle =>
+      _t('ของใกล้หมดอายุ', 'Items expiring soon');
+  String notiExpiringBody(String name, int days) {
+    if (days == 0) return _t('$name จะหมดอายุวันนี้', '$name expires today');
+    if (days == 1) {
+      return _t('$name จะหมดอายุพรุ่งนี้', '$name expires tomorrow');
+    }
+    return _t('$name จะหมดอายุในอีก $days วัน',
+        '$name expires in $days days');
+  }
+
+  String notiExpiredBody(String name) =>
+      _t('$name หมดอายุแล้ว', '$name has expired');
+
+  // recurring (re-buy) variants — a decision nudge, not an expiry warning
+  String get notiRecurringTitle => _t('ของซื้อประจำใกล้ครบรอบ', 'Time to re-buy?');
+  String notiRecurringBody(String name, int days) {
+    if (days <= 0) {
+      return _t('$name น่าจะใช้หมดแล้ว — จะซื้ออีกไหม?',
+          '$name is likely used up — buy again?');
+    }
+    if (days == 1) {
+      return _t('$name ใกล้หมดแล้ว — จะซื้ออีกไหม?',
+          '$name is almost out — buy again?');
+    }
+    return _t('$name จะใช้หมดในอีก $days วัน — จะซื้ออีกไหม?',
+        '$name runs out in $days days — buy again?');
+  }
+
+  String get notificationsTitle => _t('การแจ้งเตือน', 'Notifications');
+  String get notificationsSubtitle =>
+      _t('ของใกล้หมดอายุ', 'Items expiring soon');
+  String get noNotifications =>
+      _t('ยังไม่มีของใกล้หมดอายุ', 'Nothing expiring soon');
+  String get noNotificationsHint => _t(
+      'เราจะเตือนเมื่อมีของใกล้หมดอายุภายใน 3 วัน',
+      "We'll remind you when items are within 3 days of expiring");
+  String get notifRead => _t('อ่านแล้ว', 'Read');
+  String get notifUnread => _t('ใหม่', 'New');
+  String get notifMarkAllRead => _t('อ่านทั้งหมด', 'Mark all read');
+  String get notifMarkRead => _t('ทำเป็นอ่านแล้ว', 'Mark as read');
+  String get notifFilterAll => _t('ทั้งหมด', 'All');
+  String get notifFilterUnread => _t('ยังไม่อ่าน', 'Unread');
+  String get noUnreadNotifications =>
+      _t('ไม่มีรายการที่ยังไม่อ่าน', 'No unread notifications');
+  // short, emphasised "when it expires" used on the notification chip
+  String get expiresTodayShort => _t('หมดวันนี้', 'Expires today');
+  String get expiresTomorrowShort => _t('หมดพรุ่งนี้', 'Expires tomorrow');
+  String expiresInDaysShort(int d) => _t('อีก $d วัน', 'in $d days');
+  String expiredAgoShort(int d) =>
+      _t('เลยมาแล้ว $d วัน', 'expired $d days ago');
+  // notification day-group headers
+  String get notifToday => _t('วันนี้', 'Today');
+  String get notifYesterday => _t('เมื่อวาน', 'Yesterday');
+  String notifReceivedAt(String time) => _t('แจ้งเมื่อ $time', 'at $time');
+
+
   // ---------- item fields (household item) ----------
   String get itemsTitle => _t('ของใช้', 'Items');
+  String get itemsMonthSubtitle =>
+      _t('ของใช้ในเดือนนี้', 'What you have this month');
+  String get noItemsThisMonth =>
+      _t('ยังไม่มีของใช้ในเดือนนี้', 'No items in use this month');
+  String get noItemsThisMonthHint => _t(
+      'ของที่ซื้อเดือนนี้ หรือยังใช้ไม่หมดจากเดือนก่อน จะแสดงที่นี่',
+      'Items bought this month, or still in use from before, appear here');
   String get searchItems => _t('ค้นหาสินค้า...', 'Search items...');
   String get noMatchingItems => _t('ไม่พบรายการที่ค้นหา', 'No matching items found');
   String get noMatchingItemsHint =>
@@ -283,6 +353,21 @@ class AppStrings {
   String get buyerLabel => _t('ผู้ซื้อ', 'Buyer');
   String get expiryLabel => _t('วันหมดอายุ', 'Expiry date');
   String get recurringLabel => _t('ซื้อประจำ (แจ้งเตือน)', 'Recurring (notify)');
+  String get recurringHint => _t(
+      'เตือนให้ตัดสินใจซื้อซ้ำเมื่อใกล้ครบรอบการใช้',
+      'Reminds you to re-buy when the usage cycle is almost up');
+  String get recurringDaysLabel =>
+      _t('ใช้หมดภายในกี่วัน', 'Used up within (days)');
+  String get recurringDaysHint => _t('เช่น 7', 'e.g. 7');
+  String get daysUnit => _t('วัน', 'days');
+  String get recurringDaysInvalid =>
+      _t('กรอกจำนวนวัน 1–3650', 'Enter 1–3650 days');
+  String recurringPreview(String date) => _t(
+      'ระบบจะเตือนให้ซื้อซ้ำประมาณวันที่ $date',
+      "We'll remind you to re-buy around $date");
+  String get markOutButton => _t('หมดแล้ว', 'Used up');
+  String get markedOutDone =>
+      _t('ย้ายไปรายการควรซื้อแล้ว', 'Moved to the shopping list');
   String get changePhoto => _t('เปลี่ยนรูปภาพ', 'Change photo');
   String get noItemsYet => _t('ยังไม่มีของใช้', 'No items yet');
   String get noItemsYetHint =>
@@ -360,6 +445,9 @@ class AppStrings {
   String get toBuyEmpty => _t('ไม่มีของที่ต้องซื้อ 🎉', 'Nothing to buy 🎉');
   String get toBuyEmptyHint => _t(
       'ของใช้ทุกชิ้นยังมีเพียงพอ', 'All your items are well stocked');
+  String get toBuyOutSection => _t('หมดแล้ว', 'Out of stock');
+  String get toBuyLowSection => _t('ใกล้หมด', 'Running low');
+  String get buyButton => _t('ซื้อ', 'Buy');
   String get estimatedTotal => _t('ยอดรวมโดยประมาณ', 'Estimated total');
   String get checkout => _t('ส่งซื้อ / ซื้อแล้ว', 'Mark as bought');
   String checkoutDone(int n) =>
@@ -413,6 +501,96 @@ class AppStrings {
   String get comingSoon => _t('เร็ว ๆ นี้', 'Coming soon');
   String get comingSoonHint =>
       _t('ฟีเจอร์นี้กำลังพัฒนา', 'This feature is coming soon');
+
+  // ---------- product master + purchases (redesign) ----------
+  // menu entries
+  String get productsMenu => _t('คลังสินค้า', 'Product catalogue');
+  String get productsMenuHint =>
+      _t('ดูของทั้งหมดที่มี + สถานะ', 'All your products + status');
+
+  // product master list
+  String get productMasterTitle => _t('คลังสินค้า', 'Product catalogue');
+  String get searchProducts => _t('ค้นหาสินค้า...', 'Search products...');
+  String get noProductsYet => _t('ยังไม่มีสินค้า', 'No products yet');
+  String get noProductsYetHint => _t(
+      'กดปุ่ม + เพื่อเพิ่มสินค้าชิ้นแรก', 'Tap + to add your first product');
+  String get noMatchingProducts =>
+      _t('ไม่พบสินค้าที่ค้นหา', 'No matching products');
+  String get recurringBadge => _t('ซื้อประจำ', 'Recurring');
+
+  // product status (master, user-driven)
+  String get productStatusInStock => _t('มีของ', 'In stock');
+  String get productStatusLow => _t('ใกล้หมด', 'Low');
+  String get productStatusOut => _t('หมดแล้ว', 'Out');
+
+  // ---------- add flow (new product vs record purchase) ----------
+  String get addFlowTitle =>
+      _t('เพิ่มเข้าของใช้อย่างไร?', 'How do you want to add?');
+  String get addNewProductOption =>
+      _t('สร้างสินค้าใหม่', 'Create a new product');
+  String get addNewProductOptionHint => _t(
+      'เพิ่มสินค้าที่ยังไม่มีในคลัง', 'Add a product not in your catalogue yet');
+  String get recordPurchaseOption =>
+      _t('บันทึกการซื้อของที่มีอยู่', 'Record a purchase');
+  String get recordPurchaseOptionHint => _t(
+      'เลือกสินค้าที่มีอยู่แล้ว แล้วบันทึกการซื้อครั้งใหม่',
+      'Pick an existing product and log a new purchase');
+  String get createProductHow =>
+      _t('สร้างสินค้าใหม่อย่างไร?', 'How do you want to create it?');
+
+  // ---------- record purchase screen ----------
+  String get recordPurchaseTitle => _t('บันทึกการซื้อ', 'Record purchase');
+  String get pickProduct => _t('เลือกสินค้า', 'Pick a product');
+  String get purchaseDetails => _t('รายละเอียดการซื้อ', 'Purchase details');
+  String get purchaseSaved => _t('บันทึกการซื้อแล้ว', 'Purchase recorded');
+  String get changeProduct => _t('เปลี่ยนสินค้า', 'Change product');
+
+  // ---------- product detail screen ----------
+  String get productDetailTitle => _t('รายละเอียดสินค้า', 'Product details');
+  String get statusSection => _t('สถานะ', 'Status');
+  String get currentStatus => _t('สถานะปัจจุบัน', 'Current status');
+  String get markLowButton => _t('ใกล้หมด', 'Running low');
+  String get markInStockButton => _t('เติมแล้ว / มีของ', 'Restocked');
+  String get statusUpdated => _t('อัปเดตสถานะแล้ว', 'Status updated');
+  String get noPurchaseHistory =>
+      _t('ยังไม่มีประวัติการซื้อ', 'No purchase history yet');
+  String get recordPurchaseAction => _t('บันทึกการซื้อ', 'Record a purchase');
+
+  // delete product
+  String get deleteProductConfirmTitle => _t('ลบสินค้า?', 'Delete product?');
+  String deleteProductConfirmMessage(String name) => _t(
+      'คุณต้องการลบ "$name" และประวัติการซื้อทั้งหมดใช่ไหม? การลบนี้ย้อนกลับไม่ได้',
+      'Delete "$name" and all its purchase history? This cannot be undone.');
+  String get productDeleted => _t('ลบสินค้าแล้ว', 'Product deleted');
+
+  // add product screen
+  String get addProductTitle => _t('เพิ่มสินค้า', 'Add product');
+  String get productInfoSection =>
+      _t('ข้อมูลสินค้า', 'Product information');
+  String get firstPurchaseSection =>
+      _t('การซื้อครั้งแรก (ไม่บังคับ)', 'First purchase (optional)');
+  String get firstPurchaseHint => _t(
+      'บันทึกการซื้อครั้งแรกไปพร้อมกัน เว้นว่างไว้ได้ถ้ายังไม่ได้ซื้อ',
+      'Record the first purchase too. Leave blank if not bought yet.');
+  String get enterProductName =>
+      _t('กรอกชื่อสินค้า', 'Enter the product name');
+  String get productSaved => _t('เพิ่มสินค้าแล้ว', 'Product added');
+  String get unitCountLabel => _t('หน่วยนับ', 'Count unit');
+
+  // monthly summary (shown inside the budget tab)
+  String get grandTotalLabel => _t('ยอดรวม', 'Total spend');
+  String get totalPurchasesLabel => _t('จำนวนครั้ง', 'Purchases');
+  String get totalQtyLabel => _t('รวมจำนวน', 'Total qty');
+  String get byBuyerTitle => _t('แยกตามผู้ซื้อ', 'By buyer');
+  String get purchasesThisMonth =>
+      _t('รายการซื้อเดือนนี้', 'Purchases this month');
+  String get noPurchasesThisMonth =>
+      _t('ยังไม่มีการซื้อในเดือนนี้', 'No purchases this month');
+  String get prevMonth => _t('เดือนก่อน', 'Previous month');
+  String get nextMonth => _t('เดือนถัดไป', 'Next month');
+  String get selectMonth => _t('เลือกเดือน', 'Select month');
+  String get unknownBuyer => _t('ไม่ระบุผู้ซื้อ', 'Unknown buyer');
+  String purchasedOn(String d) => _t('ซื้อเมื่อ $d', 'Bought $d');
 
   /// Resolve a backend error { domain, code, message } into a localized string.
   /// Falls back to the backend-provided English message, then a generic text.

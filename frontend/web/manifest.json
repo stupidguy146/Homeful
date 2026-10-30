@@ -1,11 +1,11 @@
 {
-    "name": "homeful",
-    "short_name": "homeful",
+    "name": "Checkon",
+    "short_name": "Checkon",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#F8F9F5",
+    "background_color": "#EAF3F8",
     "theme_color": "#477FA8",
-    "description": "A new Flutter project.",
+    "description": "Checkon - home consumable tracker",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

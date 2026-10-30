@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../i18n/locale_scope.dart';
 import '../i18n/language_toggle.dart';
@@ -64,10 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AuthHero(
+            GradientHeader(
               title: s.welcomeBack,
               subtitle: s.loginSubtitle,
-              trailing: const LanguageToggle(),
+              logoAsset: 'assets/images/logos/checkon_logo.png',
+              logoHeight: 64,
+              centerTitle: true,
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -149,90 +152,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: AppSpacing.sm),
+                    const Center(child: LanguageToggle(onGradient: false)),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Gradient hero used at the top of auth screens.
-///
-/// Pass [onBack] to show a circular back button (same style used across the
-/// auth flow: white 18% surface + rounded arrow). When null, the home logo
-/// badge is shown instead (login/register entry screens).
-class AuthHero extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-  final VoidCallback? onBack;
-  const AuthHero({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-    this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xxxl, AppSpacing.xl, AppSpacing.xxl),
-      decoration: const BoxDecoration(
-        gradient: AppGradients.brand,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(AppRadius.xxl),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                if (onBack != null)
-                  Material(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: AppRadius.rMd,
-                    child: InkWell(
-                      onTap: onBack,
-                      borderRadius: AppRadius.rMd,
-                      child: const Padding(
-                        padding: EdgeInsets.all(AppSpacing.md),
-                        child: Icon(Icons.arrow_back_rounded,
-                            color: Colors.white, size: 22),
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: AppRadius.rLg,
-                    ),
-                    child: const Icon(Icons.home_rounded,
-                        color: Colors.white, size: 30),
-                  ),
-                const Spacer(),
-                if (trailing != null) trailing!,
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(title,
-                style: AppType.headlineMedium.copyWith(color: Colors.white)),
-            const SizedBox(height: AppSpacing.xs),
-            Text(subtitle,
-                style: AppType.bodyLarge
-                    .copyWith(color: Colors.white.withValues(alpha: 0.9))),
           ],
         ),
       ),

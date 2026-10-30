@@ -21,6 +21,7 @@ export class CatalogPresenter {
       daysUntilExpiry: i.daysUntilExpiry(),
       imageBase64: i.imageBase64,
       notifyRecurring: i.notifyRecurring,
+      recurringDays: i.recurringDays,
       createdAt: i.createdAt,
     };
   }

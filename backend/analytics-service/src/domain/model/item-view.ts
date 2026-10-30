@@ -11,6 +11,8 @@ export class ItemView {
     public readonly price: number,
     public readonly purchaseDate: string | null, // yyyy-mm-dd
     public readonly expiryDate: string | null, // yyyy-mm-dd
+    public readonly imageBase64: string | null = null,
+    public readonly notifyRecurring: boolean = false,
   ) {}
 
   subtotal(): number {

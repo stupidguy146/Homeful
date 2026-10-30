@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'screens/auth_gate.dart';
 import 'services/auth_service.dart';
 import 'services/app_lock_service.dart';
+import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/auth_scope.dart';
 import 'widgets/app_lock_scope.dart';
@@ -19,6 +20,10 @@ Future<void> main() async {
 
   final auth = AuthService();
   await auth.bootstrap(); // load persisted tokens + profile
+
+  // Local notifications (expiring-item reminders). no-op on web.
+  await NotificationService.instance.init();
+  await NotificationService.instance.requestPermission();
 
   final lock = AppLockService();
 
@@ -65,7 +70,7 @@ class RoomShoppingApp extends StatelessWidget {
               child: AnimatedBuilder(
                 animation: Listenable.merge([locale, theme]),
                 builder: (context, _) => MaterialApp(
-                  title: 'homeful',
+                  title: 'Checkon',
                   debugShowCheckedModeBanner: false,
                   theme: AppTheme.light,
                   darkTheme: AppTheme.dark,

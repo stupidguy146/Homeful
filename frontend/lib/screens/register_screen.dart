@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../i18n/locale_scope.dart';
 import '../i18n/language_toggle.dart';
@@ -88,10 +89,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AuthHero(
+            GradientHeader(
               title: s.createAccount,
               subtitle: s.registerSubtitle,
-              trailing: const LanguageToggle(),
+              logoAsset: 'assets/images/logos/checkon_logo.png',
+              logoHeight: 64,
+              centerTitle: true,
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -207,6 +210,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: AppSpacing.sm),
+                    const Center(child: LanguageToggle(onGradient: false)),
                   ],
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../widgets/app_snackbar.dart';
 import '../i18n/locale_scope.dart';
@@ -126,10 +127,13 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AuthHero(
+            GradientHeader(
               title: s.verifyEmailTitle,
               subtitle: s.enterOtp,
-              onBack: () => Navigator.pop(context),
+              leading: HeaderIconButton(
+                icon: Icons.chevron_left_rounded,
+                onTap: () => Navigator.pop(context),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -143,8 +147,8 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                   Text(
                     s.otpSentTo(widget.email),
                     textAlign: TextAlign.center,
-                    style:
-                        AppType.bodyLarge.copyWith(color: AppColors.neutral700),
+                    style: AppType.bodyLarge.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   if (errorText != null) AuthErrorBanner(message: errorText),
@@ -154,10 +158,11 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
                     maxLength: 6,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 12),
+                        letterSpacing: 12,
+                        color: Theme.of(context).colorScheme.onSurface),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(6),

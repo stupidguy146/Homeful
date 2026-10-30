@@ -59,39 +59,51 @@ class _PinLockScreenState extends State<PinLockScreen> {
     final s = context.strings;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            children: [
-              const SizedBox(height: AppSpacing.xxl),
-              const Icon(Icons.lock_rounded,
-                  size: 56, color: AppColors.brand500),
-              const SizedBox(height: AppSpacing.lg),
-              Text(s.enterPinTitle, style: AppType.headlineMedium),
-              if (_error) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(s.wrongPin,
-                    style: AppType.bodyMedium
-                        .copyWith(color: AppColors.danger)),
-              ],
-              const Spacer(),
-              PinPad(
-                value: _pin,
-                error: _error,
-                onChanged: (v) => setState(() {
-                  _pin = v;
-                  _error = false;
-                }),
-                onCompleted: _onCompleted,
-                leadingKey: _biometricAvailable
-                    ? const Icon(Icons.fingerprint_rounded,
-                        color: AppColors.brand500)
-                    : null,
-                onLeadingKey: _biometricAvailable ? _tryBiometric : null,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - AppSpacing.xl * 2,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: AppSpacing.xxl),
+                      const Icon(Icons.lock_rounded,
+                          size: 56, color: AppColors.brand500),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(s.enterPinTitle, style: AppType.headlineMedium),
+                      if (_error) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Text(s.wrongPin,
+                            style: AppType.bodyMedium
+                                .copyWith(color: AppColors.danger)),
+                      ],
+                      const Spacer(),
+                      PinPad(
+                        value: _pin,
+                        error: _error,
+                        onChanged: (v) => setState(() {
+                          _pin = v;
+                          _error = false;
+                        }),
+                        onCompleted: _onCompleted,
+                        leadingKey: _biometricAvailable
+                            ? const Icon(Icons.fingerprint_rounded,
+                                color: AppColors.brand500)
+                            : null,
+                        onLeadingKey:
+                            _biometricAvailable ? _tryBiometric : null,
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
               ),
-              const Spacer(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -39,6 +39,7 @@ class HouseholdItem {
   final int? daysUntilExpiry;
   final String? imageBase64;
   final bool notifyRecurring;
+  final int? recurringDays;
 
   HouseholdItem({
     this.id,
@@ -58,6 +59,7 @@ class HouseholdItem {
     this.daysUntilExpiry,
     this.imageBase64,
     this.notifyRecurring = false,
+    this.recurringDays,
   });
 
   factory HouseholdItem.fromJson(Map<String, dynamic> json) {
@@ -83,6 +85,7 @@ class HouseholdItem {
       daysUntilExpiry: (json['daysUntilExpiry'] as num?)?.toInt(),
       imageBase64: json['imageBase64'] as String?,
       notifyRecurring: (json['notifyRecurring'] ?? false) as bool,
+      recurringDays: (json['recurringDays'] as num?)?.toInt(),
     );
   }
 

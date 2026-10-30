@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatalogModule } from './catalog.module';
 import { HouseholdItemRecord } from './infrastructure/persistence/orm/household-item.persistence';
+import { ProductRecord } from './infrastructure/persistence/orm/product.persistence';
+import { PurchaseRecord } from './infrastructure/persistence/orm/purchase.persistence';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { HouseholdItemRecord } from './infrastructure/persistence/orm/household-
         username: config.get<string>('DB_USER', 'catalog'),
         password: config.get<string>('DB_PASSWORD', 'catalog_pass'),
         database: config.get<string>('DB_NAME', 'catalog_db'),
-        entities: [HouseholdItemRecord],
+        entities: [HouseholdItemRecord, ProductRecord, PurchaseRecord],
         synchronize: true, // dev only
       }),
     }),

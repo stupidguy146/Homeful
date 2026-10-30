@@ -28,6 +28,28 @@ export class AnalyticsProxyController {
     );
   }
 
+  @Get('summary-month')
+  summaryByMonth(@Req() req: Request, @Query('month') month?: string) {
+    return this.proxy.forwardToAnalytics(
+      'GET',
+      '/analytics/summary-month',
+      undefined,
+      { month },
+      this.sso(req),
+    );
+  }
+
+  @Get('spend-by-month')
+  spendByMonth(@Req() req: Request, @Query('months') months?: string) {
+    return this.proxy.forwardToAnalytics(
+      'GET',
+      '/analytics/spend-by-month',
+      undefined,
+      { months },
+      this.sso(req),
+    );
+  }
+
   @Get('expiring-soon')
   expiringSoon(@Req() req: Request, @Query('days') days?: string) {
     return this.proxy.forwardToAnalytics(

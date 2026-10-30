@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import '../theme/app_tokens.dart';
 
 /// ============================================================
@@ -57,6 +58,15 @@ class GradientHeader extends StatelessWidget {
   final Gradient gradient;
   final EdgeInsetsGeometry padding;
 
+  /// Optional brand logo shown above the title (e.g. on the login/register
+  /// entry screens). null hides it.
+  final String? logoAsset;
+  final double logoHeight;
+
+  /// Force-center the logo + subtitle + title. When null, falls back to the
+  /// legacy behaviour (centered only when a [leading] back button exists).
+  final bool? centerTitle;
+
   const GradientHeader({
     super.key,
     required this.title,
@@ -65,12 +75,16 @@ class GradientHeader extends StatelessWidget {
     this.trailing,
     this.stats = const [],
     this.gradient = AppGradients.brand,
+    this.logoAsset,
+    this.logoHeight = 44,
+    this.centerTitle,
     this.padding = const EdgeInsets.fromLTRB(
       AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
   });
 
   @override
   Widget build(BuildContext context) {
+    final centered = centerTitle ?? (leading != null);
     return Container(
       width: double.infinity,
       padding: padding,
@@ -86,10 +100,37 @@ class GradientHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (logoAsset != null) ...[
+              Align(
+                alignment:
+                    centered ? Alignment.center : Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: AppRadius.rLg,
+                    boxShadow: AppShadows.sm,
+                  ),
+                  child: Image.asset(
+                    logoAsset!,
+                    height: logoHeight,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             SizedBox(
+              width: double.infinity,
               height: subtitle == null ? 48 : 68,
               child: Stack(
-                alignment: Alignment.center,
+                // centre the title on screens that have a back button;
+                // left-align it on entry screens (no back button)
+                alignment:
+                    centered ? Alignment.center : Alignment.centerLeft,
                 children: [
                   if (leading != null)
                     Align(alignment: Alignment.centerLeft, child: leading!),
@@ -103,7 +144,9 @@ class GradientHeader extends StatelessWidget {
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: centered
+                          ? CrossAxisAlignment.center
+                          : CrossAxisAlignment.start,
                       children: [
                         if (subtitle != null) ...[
                           Text(
@@ -113,7 +156,9 @@ class GradientHeader extends StatelessWidget {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
+                            textAlign: centered
+                                ? TextAlign.center
+                                : TextAlign.start,
                           ),
                           const SizedBox(height: AppSpacing.xs),
                         ],
@@ -123,7 +168,9 @@ class GradientHeader extends StatelessWidget {
                               .copyWith(color: Colors.white),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
+                          textAlign: centered
+                              ? TextAlign.center
+                              : TextAlign.start,
                         ),
                       ],
                     ),
@@ -143,6 +190,30 @@ class GradientHeader extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ปุ่มไอคอนบน [GradientHeader] (เช่น ปุ่มย้อนกลับ) — พื้นขาวโปร่งแสง
+/// ใช้ร่วมกันทุกหน้าเพื่อให้ header หน้าตาเหมือนกันทั้งแอป
+class HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const HeaderIconButton({super.key, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.18),
+      borderRadius: AppRadius.rMd,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.rMd,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
       ),
     );
@@ -517,6 +588,300 @@ class SkeletonList extends StatelessWidget {
                   radius: BorderRadius.all(Radius.circular(999))),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ============================================================
+/// MONTH NAVIGATOR — shared across Items + Budget screens
+/// prev / next arrows + a tappable label that opens a month-year picker.
+/// `onGradient` switches to white colors for use on a gradient header.
+/// ============================================================
+class MonthNavigator extends StatelessWidget {
+  final DateTime month; // any day in the month
+  final ValueChanged<DateTime> onChanged;
+  final String locale;
+  final String prevTooltip;
+  final String nextTooltip;
+  final String pickerTitle;
+
+  /// Lowest / highest selectable month. [lastMonth] also disables the "next"
+  /// arrow once reached (e.g. the current month).
+  final DateTime firstMonth;
+  final DateTime lastMonth;
+
+  /// White styling for placement on a gradient header.
+  final bool onGradient;
+
+  const MonthNavigator({
+    super.key,
+    required this.month,
+    required this.onChanged,
+    required this.locale,
+    required this.firstMonth,
+    required this.lastMonth,
+    required this.prevTooltip,
+    required this.nextTooltip,
+    required this.pickerTitle,
+    this.onGradient = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabledFg = onGradient
+        ? Colors.white.withValues(alpha: 0.35)
+        : AppColors.neutral300;
+
+    // prev enabled if the previous month is >= firstMonth
+    final prev = DateTime(month.year, month.month - 1);
+    final canPrev = !prev.isBefore(DateTime(firstMonth.year, firstMonth.month));
+    // next enabled if the current selection is before lastMonth
+    final canNext = month.year < lastMonth.year ||
+        (month.year == lastMonth.year && month.month < lastMonth.month);
+
+    Widget arrow(IconData icon, bool enabled, VoidCallback onTap, String tip) {
+      if (onGradient) {
+        return IconButton(
+          tooltip: tip,
+          onPressed: enabled ? onTap : null,
+          color: Colors.white,
+          disabledColor: disabledFg,
+          icon: Icon(icon),
+        );
+      }
+      return IconButton.filledTonal(
+        tooltip: tip,
+        onPressed: enabled ? onTap : null,
+        icon: Icon(icon),
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        arrow(Icons.chevron_left_rounded, canPrev,
+            () => onChanged(DateTime(month.year, month.month - 1)), prevTooltip),
+        Expanded(
+          child: _MonthLabelButton(
+            label: DateFormat('MMMM yyyy', locale).format(month),
+            onGradient: onGradient,
+            onTap: () async {
+              final picked = await showMonthYearPicker(
+                context,
+                initial: month,
+                firstMonth: firstMonth,
+                lastMonth: lastMonth,
+                title: pickerTitle,
+                locale: locale,
+              );
+              if (picked != null) onChanged(picked);
+            },
+          ),
+        ),
+        arrow(Icons.chevron_right_rounded, canNext,
+            () => onChanged(DateTime(month.year, month.month + 1)), nextTooltip),
+      ],
+    );
+  }
+}
+
+class _MonthLabelButton extends StatelessWidget {
+  final String label;
+  final bool onGradient;
+  final VoidCallback onTap;
+  const _MonthLabelButton(
+      {required this.label, required this.onGradient, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = onGradient ? Colors.white : AppColors.neutral900;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: AppType.titleLarge.copyWith(color: fg),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Icon(Icons.arrow_drop_down_rounded, color: fg),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A month+year picker dialog: a year stepper on top + a 12-month grid.
+/// Returns the chosen month (first day) or null if cancelled.
+Future<DateTime?> showMonthYearPicker(
+  BuildContext context, {
+  required DateTime initial,
+  required DateTime firstMonth,
+  required DateTime lastMonth,
+  required String title,
+  required String locale,
+}) {
+  return showDialog<DateTime>(
+    context: context,
+    builder: (_) => _MonthYearPickerDialog(
+      initial: DateTime(initial.year, initial.month),
+      firstMonth: DateTime(firstMonth.year, firstMonth.month),
+      lastMonth: DateTime(lastMonth.year, lastMonth.month),
+      title: title,
+      locale: locale,
+    ),
+  );
+}
+
+class _MonthYearPickerDialog extends StatefulWidget {
+  final DateTime initial;
+  final DateTime firstMonth;
+  final DateTime lastMonth;
+  final String title;
+  final String locale;
+  const _MonthYearPickerDialog({
+    required this.initial,
+    required this.firstMonth,
+    required this.lastMonth,
+    required this.title,
+    required this.locale,
+  });
+
+  @override
+  State<_MonthYearPickerDialog> createState() => _MonthYearPickerDialogState();
+}
+
+class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
+  late int _year;
+
+  @override
+  void initState() {
+    super.initState();
+    _year = widget.initial.year;
+  }
+
+  bool _enabled(int year, int month) {
+    final d = DateTime(year, month);
+    final lo = DateTime(widget.firstMonth.year, widget.firstMonth.month);
+    final hi = DateTime(widget.lastMonth.year, widget.lastMonth.month);
+    return !d.isBefore(lo) && !d.isAfter(hi);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canPrevYear = _year > widget.firstMonth.year;
+    final canNextYear = _year < widget.lastMonth.year;
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.title, style: AppType.titleLarge),
+            const SizedBox(height: AppSpacing.lg),
+            // year stepper
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: canPrevYear
+                      ? () => setState(() => _year--)
+                      : null,
+                  icon: const Icon(Icons.chevron_left_rounded),
+                ),
+                Text('$_year', style: AppType.titleLarge),
+                IconButton(
+                  onPressed: canNextYear
+                      ? () => setState(() => _year++)
+                      : null,
+                  icon: const Icon(Icons.chevron_right_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            // 12-month grid (3 cols x 4 rows)
+            SizedBox(
+              width: 300,
+              child: GridView.count(
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                childAspectRatio: 2.1,
+                children: [
+                  for (int m = 1; m <= 12; m++)
+                    _MonthCell(
+                      label: DateFormat('MMM', widget.locale)
+                          .format(DateTime(_year, m)),
+                      selected: _year == widget.initial.year &&
+                          m == widget.initial.month,
+                      enabled: _enabled(_year, m),
+                      onTap: () =>
+                          Navigator.of(context).pop(DateTime(_year, m)),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MonthCell extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+  const _MonthCell({
+    required this.label,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg = selected
+        ? AppColors.brand500
+        : (Theme.of(context).cardTheme.color ?? AppColors.neutral100);
+    final Color fg = !enabled
+        ? AppColors.neutral300
+        : (selected ? Colors.white : AppColors.neutral700);
+    return Material(
+      color: enabled ? bg : AppColors.neutral100,
+      borderRadius: AppRadius.rMd,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: AppRadius.rMd,
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.rMd,
+            border: Border.all(
+              color: selected ? AppColors.brand500 : AppColors.neutral200,
+            ),
+          ),
+          child: Text(label,
+              style: AppType.titleMedium.copyWith(color: fg)),
         ),
       ),
     );

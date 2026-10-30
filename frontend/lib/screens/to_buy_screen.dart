@@ -1,17 +1,19 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../models/household_item.dart';
+import '../models/product.dart';
 import '../services/api_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
-import '../widgets/app_snackbar.dart';
 import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
+import 'record_purchase_screen.dart';
+import 'product_detail_screen.dart';
 
-/// "To buy" checklist — auto-populated from items that need restocking
-/// (status low / buy-soon / out), grouped by category. Ticking shows an
-/// estimated total; the buy action is a mock for this phase.
+/// "To buy" list — product-based, driven by the user-set stock status.
+/// Shows products marked `out` (urgent) and `low`, grouped. Buying a product
+/// records a purchase which resets its status to in_stock, so it leaves here.
 class ToBuyScreen extends StatefulWidget {
   const ToBuyScreen({super.key});
 
@@ -21,281 +23,228 @@ class ToBuyScreen extends StatefulWidget {
 
 class _ToBuyScreenState extends State<ToBuyScreen> {
   ApiService? _api;
-  Future<List<HouseholdItem>>? _future;
-  final Set<String> _checked = {}; // itemIds
-  bool _checkingOut = false;
+  Future<List<Product>>? _future;
+  int _rev = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_api == null) {
       _api = ApiService(auth: AuthScope.of(context));
-      _future = _loadNeedToBuy();
+      _future = _api!.getProductsToBuy();
     }
     final rev = DataScope.watch(context);
     if (rev != _rev) {
       _rev = rev;
-      if (_api != null) {
-        _checked.clear();
-        _future = _loadNeedToBuy();
-      }
+      if (_api != null) _future = _api!.getProductsToBuy();
     }
   }
 
-  int _rev = 0;
+  void _reload() => setState(() {
+        _future = _api!.getProductsToBuy();
+      });
 
-  Future<List<HouseholdItem>> _loadNeedToBuy() async {
-    final items = await _api!.getItems();
-    // needs restock = status != normal (low / shouldBuy / out)
-    return items
-        .where((i) => AppStatus.fromDays(i.daysUntilExpiry) != StockStatus.normal)
-        .toList();
+  Future<void> _buy(Product p) async {
+    final done = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecordPurchaseScreen(preselected: p),
+      ),
+    );
+    if (done == true) _reload();
   }
 
-  void _reload() {
-    _checked.clear();
-    setState(() => _future = _loadNeedToBuy());
+  Future<void> _openDetail(Product p) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProductDetailScreen(productId: p.productId),
+      ),
+    );
+    if (changed == true) _reload();
   }
 
   @override
   Widget build(BuildContext context) {
     final s = context.strings;
-    final baht = NumberFormat.currency(
-        locale: context.locale.lang, symbol: '฿', decimalDigits: 0);
-
     return Scaffold(
       body: SafeArea(
-        child: FutureBuilder<List<HouseholdItem>>(
-          future: _future,
-          builder: (context, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const SkeletonList();
-            }
-            if (snap.hasError) {
-              return ErrorView(error: snap.error!, onRetry: _reload);
-            }
-            final items = snap.data ?? [];
-            if (items.isEmpty) {
-              return Column(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Row(
                 children: [
-                  _title(context, s.toBuyTitle),
-                  Expanded(
-                    child: EmptyState(
+                  Text(s.toBuyTitle,
+                      style: Theme.of(context).textTheme.headlineMedium),
+                ],
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder<List<Product>>(
+                future: _future,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const SkeletonList();
+                  }
+                  if (snap.hasError) {
+                    return ErrorView(error: snap.error!, onRetry: _reload);
+                  }
+                  final products = snap.data ?? [];
+                  if (products.isEmpty) {
+                    return EmptyState(
                       icon: Icons.check_circle_outline_rounded,
                       title: s.toBuyEmpty,
                       message: s.toBuyEmptyHint,
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            // group by category
-            final groups = <String, List<HouseholdItem>>{};
-            for (final i in items) {
-              groups.putIfAbsent(categoryToString(i.category), () => []).add(i);
-            }
-            final estimated = items
-                .where((i) => _checked.contains(i.itemId))
-                .fold<double>(0, (a, i) => a + i.subtotal);
-
-            return Column(
-              children: [
-                _title(context, s.toBuyTitle),
-                Expanded(
-                  child: RefreshIndicator(
+                    );
+                  }
+                  final out = products
+                      .where((p) => p.status == ProductStatus.out)
+                      .toList();
+                  final low = products
+                      .where((p) => p.status == ProductStatus.low)
+                      .toList();
+                  return RefreshIndicator(
                     onRefresh: () async => _reload(),
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(
                           AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                       children: [
-                        for (final entry in groups.entries) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: AppSpacing.sm),
-                            child: Text(
-                              '${s.categoryName(entry.key)} (${entry.value.length})',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
+                        if (out.isNotEmpty) ...[
+                          _SectionLabel(
+                            label: '🔴 ${s.toBuyOutSection}',
+                            count: out.length,
                           ),
-                          AppCard(
-                            padding: EdgeInsets.zero,
-                            child: Column(
-                              children: [
-                                for (final it in entry.value)
-                                  _CheckRow(
-                                    item: it,
-                                    baht: baht,
-                                    checked: _checked.contains(it.itemId),
-                                    onChanged: (v) => setState(() {
-                                      if (v == true) {
-                                        _checked.add(it.itemId);
-                                      } else {
-                                        _checked.remove(it.itemId);
-                                      }
-                                    }),
-                                  ),
-                              ],
+                          for (final p in out)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.md),
+                              child: _ToBuyCard(
+                                product: p,
+                                onBuy: () => _buy(p),
+                                onTap: () => _openDetail(p),
+                              ),
                             ),
+                        ],
+                        if (low.isNotEmpty) ...[
+                          _SectionLabel(
+                            label: '🟡 ${s.toBuyLowSection}',
+                            count: low.length,
                           ),
-                          const SizedBox(height: AppSpacing.md),
+                          for (final p in low)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.md),
+                              child: _ToBuyCard(
+                                product: p,
+                                onBuy: () => _buy(p),
+                                onTap: () => _openDetail(p),
+                              ),
+                            ),
                         ],
                       ],
                     ),
-                  ),
-                ),
-                _CheckoutBar(
-                  total: estimated,
-                  count: _checked.length,
-                  baht: baht,
-                  loading: _checkingOut,
-                  onCheckout: () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    if (_checked.isEmpty) {
-                      AppSnackBar.show(
-                          messenger, s.selectItemsFirst, SnackKind.info);
-                      return;
-                    }
-                    final n = _checked.length;
-                    setState(() => _checkingOut = true);
-                    await Future.delayed(const Duration(milliseconds: 500));
-                    if (!mounted) return;
-                    AppSnackBar.show(
-                        messenger, s.checkoutDone(n), SnackKind.success);
-                    setState(() => _checkingOut = false);
-                    _reload();
-                  },
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
-  Widget _title(BuildContext context, String title) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          children: [
-            Text(title, style: Theme.of(context).textTheme.headlineMedium),
-          ],
-        ),
-      );
 }
 
-class _CheckRow extends StatelessWidget {
-  final HouseholdItem item;
-  final NumberFormat baht;
-  final bool checked;
-  final ValueChanged<bool?> onChanged;
-  const _CheckRow({
-    required this.item,
-    required this.baht,
-    required this.checked,
-    required this.onChanged,
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  final int count;
+  const _SectionLabel({required this.label, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Text('$label ($count)',
+          style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+}
+
+class _ToBuyCard extends StatelessWidget {
+  final Product product;
+  final VoidCallback onBuy;
+  final VoidCallback onTap;
+  const _ToBuyCard({
+    required this.product,
+    required this.onBuy,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final s = context.strings;
-    final status = AppStatus.fromDays(item.daysUntilExpiry);
-    final statusLabel = {
-      StockStatus.normal: s.statusNormal,
-      StockStatus.low: s.statusLow,
-      StockStatus.shouldBuy: s.statusShouldBuy,
-      StockStatus.out: s.statusOut,
-    }[status]!;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+    final img = _decode(product.imageBase64);
+    final subtitle = [
+      if (product.sizeLabel.isNotEmpty) product.sizeLabel,
+      if ((product.unitLabel ?? '').isNotEmpty) product.unitLabel!,
+    ].join(' · ');
+    return AppCard(
+      onTap: onTap,
       child: Row(
         children: [
-          Checkbox(
-            value: checked,
-            onChanged: onChanged,
-            activeColor: AppColors.brand500,
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.brand100,
+              borderRadius: AppRadius.rMd,
+              image: img != null
+                  ? DecorationImage(image: MemoryImage(img), fit: BoxFit.cover)
+                  : null,
+            ),
+            child: img == null
+                ? const Icon(Icons.inventory_2_outlined,
+                    color: AppColors.brand500)
+                : null,
           ),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name,
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    StatusChip(status: status, label: statusLabel),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text('${item.quantity} ${item.unitLabel ?? s.pieces}',
-                        style: Theme.of(context).textTheme.bodyMedium),
-                  ],
-                ),
+                Text(product.name,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium),
+                ],
               ],
             ),
           ),
-          Text(baht.format(item.subtotal),
-              style: AppType.titleMedium.copyWith(color: AppColors.brand600)),
+          const SizedBox(width: AppSpacing.sm),
+          FilledButton.icon(
+            onPressed: onBuy,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            ),
+            icon: const Icon(Icons.shopping_cart_checkout_rounded, size: 18),
+            label: Text(s.buyButton),
+          ),
         ],
       ),
     );
   }
-}
 
-class _CheckoutBar extends StatelessWidget {
-  final double total;
-  final int count;
-  final NumberFormat baht;
-  final bool loading;
-  final Future<void> Function() onCheckout;
-  const _CheckoutBar({
-    required this.total,
-    required this.count,
-    required this.baht,
-    required this.loading,
-    required this.onCheckout,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.strings;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        boxShadow: AppShadows.lg,
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(s.estimatedTotal,
-                    style: Theme.of(context).textTheme.bodyMedium),
-                Text(baht.format(total),
-                    style: AppType.titleLarge
-                        .copyWith(color: AppColors.brand600)),
-              ],
-            ),
-            const Spacer(),
-            FilledButton.icon(
-              onPressed: loading ? null : () => onCheckout(),
-              icon: loading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.shopping_cart_checkout_rounded, size: 18),
-              label: Text(s.checkout),
-            ),
-          ],
-        ),
-      ),
-    );
+  static Uint8List? _decode(String? b64) {
+    if (b64 == null || b64.isEmpty) return null;
+    try {
+      return base64Decode(b64.contains(',') ? b64.split(',').last : b64);
+    } catch (_) {
+      return null;
+    }
   }
 }

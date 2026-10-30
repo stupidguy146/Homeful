@@ -21,6 +21,7 @@ export class HouseholdItemMapper {
     r.expiryDate = d.expiryDate;
     r.imageBase64 = d.imageBase64;
     r.notifyRecurring = d.notifyRecurring;
+    r.recurringDays = d.recurringDays;
     r.createdAt = d.createdAt;
     return r;
   }
@@ -43,6 +44,7 @@ export class HouseholdItemMapper {
       expiryDate: r.expiryDate,
       imageBase64: r.imageBase64,
       notifyRecurring: r.notifyRecurring,
+      recurringDays: r.recurringDays ?? null,
       createdAt: r.createdAt,
     });
   }

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import '../models/household_item.dart';
 import '../models/api_error.dart';
 import '../services/api_service.dart';
@@ -16,6 +15,7 @@ import '../widgets/auth_scope.dart';
 import '../state/data_refresh.dart';
 import '../i18n/app_strings.dart';
 import '../i18n/locale_scope.dart';
+import 'barcode_scanner_screen.dart';
 import '../validators/item_form_validators.dart';
 
 /// Icon representing each item category (used in the category selector).
@@ -163,6 +163,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   late final TextEditingController _price;
   late final TextEditingController _store;
   late final TextEditingController _buyer;
+  late final TextEditingController _recurringDays;
 
   ApiService? _api;
   ItemCategory _category = ItemCategory.other;
@@ -198,6 +199,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     _category = e?.category ?? ItemCategory.other;
     _image = e?.imageBase64;
     _recurring = e?.notifyRecurring ?? false;
+    _recurringDays = TextEditingController(
+        text: e?.recurringDays != null ? '${e!.recurringDays}' : '');
     if (e?.purchaseDate != null) {
       _purchaseDate = DateTime.tryParse(e!.purchaseDate!);
     } else if (!_isEdit) {
@@ -248,7 +251,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   void dispose() {
     _productLookup.close();
     for (final c in [
-      _name, _size, _unit, _qty, _price, _store, _buyer
+      _name, _size, _unit, _qty, _price, _store, _buyer, _recurringDays
     ]) {
       c.dispose();
     }
@@ -272,7 +275,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   Future<void> _scanBarcode() async {
     final barcode = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const _BarcodeScannerScreen()),
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
     );
     if (barcode == null || !mounted) return;
 
@@ -318,9 +321,24 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     }
   }
 
+  /// Preview of the auto-computed expiry date for a recurring item: shown only
+  /// when the user ticked "recurring", entered a cycle, and has NOT set their
+  /// own expiry date (their value always wins). Returns a formatted date, or
+  /// null when no preview should show.
+  String? get _recurringPreview {
+    if (!_recurring) return null;
+    if (_expiryDate != null) return null; // user's own expiry wins
+    final days = int.tryParse(_recurringDays.text.trim());
+    if (days == null || days < 1) return null;
+    final base = _purchaseDate ?? DateTime.now();
+    final computed = base.add(Duration(days: days));
+    return DateFormat('d MMM yyyy', context.locale.lang).format(computed);
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
+    final recurringDays = int.tryParse(_recurringDays.text.trim());
     final body = <String, dynamic>{
       'name': _name.text.trim(),
       'category': categoryToString(_category),
@@ -335,6 +353,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       'expiryDate': _expiryDate?.toIso8601String().substring(0, 10),
       'imageBase64': _image,
       'notifyRecurring': _recurring,
+      'recurringDays': _recurring ? recurringDays : null,
     };
     final messenger = ScaffoldMessenger.of(context);
     final s = context.strings;
@@ -658,13 +677,67 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                       },
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    SwitchListTile(
+                    SwitchListTile.adaptive(
                       value: _recurring,
                       onChanged: (v) => setState(() => _recurring = v),
                       title: Text(s.recurringLabel),
+                      subtitle: Text(s.recurringHint,
+                          style: AppType.caption
+                              .copyWith(color: AppColors.neutral500)),
                       contentPadding: EdgeInsets.zero,
-                      activeThumbColor: AppColors.brand500,
                     ),
+                    if (_recurring) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      TextFormField(
+                        controller: _recurringDays,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          labelText: s.recurringDaysLabel,
+                          hintText: s.recurringDaysHint,
+                          prefixIcon:
+                              const Icon(Icons.autorenew_rounded),
+                          suffixText: s.daysUnit,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (!_recurring) return null;
+                          final t = v?.trim() ?? '';
+                          if (t.isEmpty) return null; // optional
+                          final n = int.tryParse(t);
+                          if (n == null || n < 1 || n > 3650) {
+                            return s.recurringDaysInvalid;
+                          }
+                          return null;
+                        },
+                      ),
+                      if (_recurringPreview != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.brand500.withValues(alpha: 0.08),
+                            borderRadius: AppRadius.rMd,
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.event_available_rounded,
+                                  size: 18, color: AppColors.brand500),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  s.recurringPreview(_recurringPreview!),
+                                  style: AppType.bodyMedium
+                                      .copyWith(color: AppColors.brand700),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                     const SizedBox(height: AppSpacing.lg),
                     FilledButton(
                       onPressed: _saving ? null : _save,
@@ -736,78 +809,6 @@ class _Back extends StatelessWidget {
           padding: EdgeInsets.all(AppSpacing.md),
           child: Icon(Icons.chevron_left_rounded, color: Colors.white, size: 24),
         ),
-      ),
-    );
-  }
-}
-
-class _BarcodeScannerScreen extends StatefulWidget {
-  const _BarcodeScannerScreen();
-
-  @override
-  State<_BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
-}
-
-class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
-  bool _handled = false;
-  final _controller = MobileScannerController(
-    formats: const [
-      BarcodeFormat.ean8,
-      BarcodeFormat.ean13,
-      BarcodeFormat.upcA,
-      BarcodeFormat.upcE,
-      BarcodeFormat.code128,
-    ],
-  );
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_handled) return;
-    for (final barcode in capture.barcodes) {
-      final value = barcode.rawValue;
-      if (value == null || value.isEmpty) continue;
-      _handled = true;
-      Navigator.of(context).pop(value);
-      return;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.strings;
-    return Scaffold(
-      appBar: AppBar(title: Text(s.scanBarcode)),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.65),
-                    borderRadius: AppRadius.rMd,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Text(
-                      s.pointCameraAtBarcode,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

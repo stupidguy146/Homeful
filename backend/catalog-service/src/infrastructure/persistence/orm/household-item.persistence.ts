@@ -64,6 +64,9 @@ export class HouseholdItemRecord {
   @Column({ type: 'boolean', default: false })
   notifyRecurring: boolean;
 
+  @Column({ type: 'int', nullable: true })
+  recurringDays: number | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 }

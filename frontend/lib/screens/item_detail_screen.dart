@@ -45,7 +45,28 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   int _rev = 0;
 
-  void _reload() => setState(() => _future = _api!.getItem(widget.itemId));
+  void _reload() => setState(() {
+        _future = _api!.getItem(widget.itemId);
+      });
+
+  /// Mark the item as used up (quantity → 0). No inventory tracking needed —
+  /// one tap sends it to the "to buy" list.
+  Future<void> _markOut(HouseholdItem item) async {
+    final s = context.strings;
+    final messenger = ScaffoldMessenger.of(context);
+    final dataRefresh = DataScope.of(context);
+    try {
+      await _api!.updateItem(widget.itemId, {'quantity': 0});
+      _changed = true;
+      dataRefresh.bump();
+      if (mounted) {
+        AppSnackBar.show(messenger, s.markedOutDone, SnackKind.success);
+        _reload();
+      }
+    } catch (e) {
+      AppSnackBar.show(messenger, s.errorWith(e), SnackKind.error);
+    }
+  }
 
   Future<void> _delete(HouseholdItem item) async {
     final s = context.strings;
@@ -164,6 +185,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
+                    if (item.quantity > 0)
+                      FilledButton.icon(
+                        onPressed: () => _markOut(item),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.shouldBuy,
+                        ),
+                        icon: const Icon(Icons.remove_shopping_cart_outlined,
+                            size: 18),
+                        label: Text(s.markOutButton),
+                      ),
+                    if (item.quantity > 0)
+                      const SizedBox(height: AppSpacing.sm),
                     FilledButton.icon(
                       onPressed: () async {
                         final changed = await Navigator.push<bool>(

@@ -88,4 +88,142 @@ export class CatalogProxyController {
       this.sso(req),
     );
   }
+
+  // ---------- Products (master) ----------
+  @Post('products')
+  createProduct(@Req() req: Request, @Body() body: unknown) {
+    return this.proxy.forwardToCatalog(
+      'POST',
+      '/catalog/products',
+      body,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Get('products')
+  listProducts(@Req() req: Request, @Query('category') category?: string) {
+    return this.proxy.forwardToCatalog(
+      'GET',
+      '/catalog/products',
+      undefined,
+      { category },
+      this.sso(req),
+    );
+  }
+
+  @Get('products/to-buy')
+  productsToBuy(@Req() req: Request) {
+    return this.proxy.forwardToCatalog(
+      'GET',
+      '/catalog/products/to-buy',
+      undefined,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Get('products/by-month')
+  productsByMonth(@Req() req: Request, @Query('month') month?: string) {
+    return this.proxy.forwardToCatalog(
+      'GET',
+      '/catalog/products/by-month',
+      undefined,
+      { month },
+      this.sso(req),
+    );
+  }
+
+  @Get('products/:productId')
+  getProduct(@Req() req: Request, @Param('productId') productId: string) {
+    return this.proxy.forwardToCatalog(
+      'GET',
+      `/catalog/products/${productId}`,
+      undefined,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Get('products/:productId/history')
+  productHistory(
+    @Req() req: Request,
+    @Param('productId') productId: string,
+  ) {
+    return this.proxy.forwardToCatalog(
+      'GET',
+      `/catalog/products/${productId}/history`,
+      undefined,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Patch('products/:productId')
+  updateProduct(
+    @Req() req: Request,
+    @Param('productId') productId: string,
+    @Body() body: unknown,
+  ) {
+    return this.proxy.forwardToCatalog(
+      'PATCH',
+      `/catalog/products/${productId}`,
+      body,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Patch('products/:productId/status')
+  updateProductStatus(
+    @Req() req: Request,
+    @Param('productId') productId: string,
+    @Body() body: unknown,
+  ) {
+    return this.proxy.forwardToCatalog(
+      'PATCH',
+      `/catalog/products/${productId}/status`,
+      body,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Delete('products/:productId')
+  @HttpCode(204)
+  removeProduct(@Req() req: Request, @Param('productId') productId: string) {
+    return this.proxy.forwardToCatalog(
+      'DELETE',
+      `/catalog/products/${productId}`,
+      undefined,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Post('products/:productId/purchases')
+  addPurchase(
+    @Req() req: Request,
+    @Param('productId') productId: string,
+    @Body() body: unknown,
+  ) {
+    return this.proxy.forwardToCatalog(
+      'POST',
+      `/catalog/products/${productId}/purchases`,
+      body,
+      undefined,
+      this.sso(req),
+    );
+  }
+
+  @Get('purchases')
+  purchasesByMonth(@Req() req: Request, @Query('month') month?: string) {
+    return this.proxy.forwardToCatalog(
+      'GET',
+      '/catalog/purchases',
+      undefined,
+      { month },
+      this.sso(req),
+    );
+  }
 }

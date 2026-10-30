@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// ============================================================
 /// DESIGN TOKENS — single source of truth สำหรับทั้งแอป
@@ -152,24 +153,27 @@ class AppShadows {
 class AppType {
   AppType._();
 
-  static const String fontFamily = 'Roboto';
+  /// All AppType styles are rendered with Noto Sans Thai so text drawn via
+  /// `AppType.*` directly matches the themed `textTheme` (also Noto Sans Thai).
+  static TextStyle _noto(TextStyle base) =>
+      GoogleFonts.notoSansThai(textStyle: base);
 
-  static const TextStyle displayLarge = TextStyle(
-      fontSize: 34, fontWeight: FontWeight.w800, height: 1.15, letterSpacing: -0.5);
-  static const TextStyle headlineMedium = TextStyle(
-      fontSize: 26, fontWeight: FontWeight.w700, height: 1.2, letterSpacing: -0.3);
-  static const TextStyle titleLarge =
-      TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.25);
-  static const TextStyle titleMedium =
-      TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.3);
-  static const TextStyle bodyLarge =
-      TextStyle(fontSize: 15, fontWeight: FontWeight.w400, height: 1.4);
-  static const TextStyle bodyMedium =
-      TextStyle(fontSize: 13.5, fontWeight: FontWeight.w400, height: 1.4);
-  static const TextStyle label =
-      TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, letterSpacing: 0.2);
-    static const TextStyle caption = TextStyle(
-      fontSize: 11.5, fontWeight: FontWeight.w500, letterSpacing: 0.3, height: 1.3);
+  static TextStyle get displayLarge => _noto(const TextStyle(
+      fontSize: 34, fontWeight: FontWeight.w800, height: 1.15, letterSpacing: -0.5));
+  static TextStyle get headlineMedium => _noto(const TextStyle(
+      fontSize: 26, fontWeight: FontWeight.w700, height: 1.2, letterSpacing: -0.3));
+  static TextStyle get titleLarge => _noto(
+      const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.25));
+  static TextStyle get titleMedium => _noto(
+      const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.3));
+  static TextStyle get bodyLarge => _noto(
+      const TextStyle(fontSize: 15, fontWeight: FontWeight.w400, height: 1.4));
+  static TextStyle get bodyMedium => _noto(
+      const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w400, height: 1.4));
+  static TextStyle get label => _noto(const TextStyle(
+      fontSize: 12.5, fontWeight: FontWeight.w600, letterSpacing: 0.2));
+  static TextStyle get caption => _noto(const TextStyle(
+      fontSize: 11.5, fontWeight: FontWeight.w500, letterSpacing: 0.3, height: 1.3));
 }
 
 /// ---------- DURATION ----------

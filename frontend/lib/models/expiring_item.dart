@@ -6,6 +6,8 @@ class ExpiringItem {
   final int quantity;
   final DateTime? expiryDate;
   final int? daysUntilExpiry;
+  final String? imageBase64;
+  final bool notifyRecurring;
 
   ExpiringItem({
     required this.itemId,
@@ -14,6 +16,8 @@ class ExpiringItem {
     required this.quantity,
     this.expiryDate,
     this.daysUntilExpiry,
+    this.imageBase64,
+    this.notifyRecurring = false,
   });
 
   factory ExpiringItem.fromJson(Map<String, dynamic> json) {
@@ -28,6 +32,8 @@ class ExpiringItem {
       daysUntilExpiry: json['daysUntilExpiry'] != null
           ? (json['daysUntilExpiry'] as num).toInt()
           : null,
+      imageBase64: json['imageBase64'] as String?,
+      notifyRecurring: (json['notifyRecurring'] ?? false) as bool,
     );
   }
 }

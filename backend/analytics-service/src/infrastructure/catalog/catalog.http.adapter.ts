@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
-import { CatalogPort } from '../../domain/port/catalog.port';
+import { CatalogPort, ProductView, PurchaseView } from '../../domain/port/catalog.port';
 import { ItemView } from '../../domain/model/item-view';
 import { SSO_ID_HEADER } from '../../shared/constants';
 
@@ -37,10 +37,54 @@ export class CatalogHttpAdapter implements CatalogPort {
             Number(i.price ?? 0),
             i.purchaseDate ?? null,
             i.expiryDate ?? null,
+            i.imageBase64 ?? null,
+            Boolean(i.notifyRecurring ?? false),
           ),
       );
     } catch (err: any) {
       this.logger.error(`catalog call failed: ${err?.message}`);
+      throw err;
+    }
+  }
+
+  async getProducts(ssoId: string): Promise<ProductView[]> {
+    try {
+      const { data } = await this.http.get('/catalog/products', {
+        headers: { [SSO_ID_HEADER]: ssoId },
+      });
+      return (data as any[]).map((p) => ({
+        productId: p.productId,
+        name: p.name,
+        category: p.category,
+      }));
+    } catch (err: any) {
+      this.logger.error(`catalog products call failed: ${err?.message}`);
+      throw err;
+    }
+  }
+
+  async getPurchasesByMonth(
+    ssoId: string,
+    month: string,
+  ): Promise<PurchaseView[]> {
+    try {
+      const { data } = await this.http.get('/catalog/purchases', {
+        headers: { [SSO_ID_HEADER]: ssoId },
+        params: { month },
+      });
+      const items = (data?.items as any[]) ?? [];
+      return items.map((p) => ({
+        purchaseId: p.purchaseId,
+        productId: p.productId,
+        quantity: Number(p.quantity ?? 0),
+        price: Number(p.price ?? 0),
+        subtotal: Number(p.subtotal ?? 0),
+        buyer: p.buyer ?? null,
+        store: p.store ?? null,
+        purchasedAt: p.purchasedAt,
+      }));
+    } catch (err: any) {
+      this.logger.error(`catalog purchases call failed: ${err?.message}`);
       throw err;
     }
   }

@@ -21,6 +21,7 @@ export interface HouseholdItemProps {
   expiryDate: string | null; // ISO yyyy-mm-dd
   imageBase64: string | null;
   notifyRecurring: boolean;
+  recurringDays: number | null; // consumption cycle in days (recurring items)
   createdAt: Date;
 }
 
@@ -41,6 +42,7 @@ export class HouseholdItem {
   expiryDate: string | null;
   imageBase64: string | null;
   notifyRecurring: boolean;
+  recurringDays: number | null;
   readonly createdAt: Date;
 
   constructor(p: HouseholdItemProps) {
@@ -60,6 +62,7 @@ export class HouseholdItem {
     this.expiryDate = p.expiryDate;
     this.imageBase64 = p.imageBase64;
     this.notifyRecurring = p.notifyRecurring;
+    this.recurringDays = p.recurringDays;
     this.createdAt = p.createdAt;
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/api_error.dart';
 import '../theme/app_tokens.dart';
 import '../validators/password_policy.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../widgets/password_strength_meter.dart';
 import '../i18n/locale_scope.dart';
@@ -95,10 +96,13 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            AuthHero(
+            GradientHeader(
               title: s.setPasswordTitle,
               subtitle: s.setPasswordSubtitle,
-              onBack: () => Navigator.pop(context),
+              leading: HeaderIconButton(
+                icon: Icons.chevron_left_rounded,
+                onTap: () => Navigator.pop(context),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),

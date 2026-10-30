@@ -7,6 +7,7 @@ import '../theme/app_tokens.dart';
 import '../i18n/locale_scope.dart';
 import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
+import '../widgets/notification_bell.dart';
 import '../widgets/app_lock_scope.dart';
 import 'change_password_screen.dart';
 import 'change_pin_screen.dart';
@@ -16,7 +17,7 @@ import 'items_screen.dart';
 import 'budget_screen.dart';
 import 'to_buy_screen.dart';
 import 'settings_screen.dart';
-
+import 'product_master_screen.dart';
 /// Main app shell with the homeful 5-tab bottom navigation.
 /// (To-buy is a placeholder until its phase lands.)
 class MainShell extends StatefulWidget {
@@ -237,7 +238,14 @@ class _MenuScreenState extends State<_MenuScreen> {
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          GradientHeader(subtitle: s.appTitle, title: s.navMenu),
+          GradientHeader(
+            subtitle: s.appTitle,
+            title: s.navMenu,
+            logoAsset:
+                'assets/images/logos/checkon_logo.png',
+            logoHeight: 52,
+            trailing: const NotificationBell(),
+          ),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
@@ -289,6 +297,16 @@ class _MenuScreenState extends State<_MenuScreen> {
                       ),
                     );
                   },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _MenuOption(
+                  icon: Icons.inventory_2_outlined,
+                  label: s.productsMenu,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ProductMasterScreen()),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _MenuOption(
