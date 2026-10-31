@@ -7,11 +7,10 @@ import '../widgets/auth_scope.dart';
 import '../widgets/password_strength_meter.dart';
 import '../i18n/locale_scope.dart';
 import 'login_screen.dart';
-import 'setup_pin_screen.dart';
 
 /// Step 3: after OTP verification the user sets a password. Shows the live
 /// requirements checklist + strength meter. On success the account is created
-/// and logged in, then we go to [SetupPinScreen].
+/// and logged in, then the root auth gate advances to PIN setup.
 class SetPasswordScreen extends StatefulWidget {
   final String email;
   final String setupTicket;
@@ -67,13 +66,8 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
         password: _passwordCtrl.text,
       );
       if (!mounted) return;
-      // Account created + logged in. Continue to PIN setup, replacing the
-      // whole auth stack so Back doesn't return to the register flow.
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const SetupPinScreen()),
-        (route) => false,
-      );
+      // Return to the root auth gate, which now presents PIN setup.
+      Navigator.popUntil(context, (route) => route.isFirst);
     } on ApiError catch (e) {
       setState(() => _error = e);
     } catch (e) {

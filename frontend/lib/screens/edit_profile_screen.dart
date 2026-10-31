@@ -146,7 +146,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           if (snapshot.hasError) {
             return ErrorView(
               error: snapshot.error!,
-              onRetry: () => setState(() => _future = _load()),
+              onRetry: () => setState(() {
+                _future = _load();
+              }),
             );
           }
           return SingleChildScrollView(

@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/app_config.dart';
-import '../models/auth_user.dart';
 import '../models/api_error.dart';
+import '../models/auth_user.dart';
 import 'token_store.dart';
 
 /// Talks to the gateway auth endpoints and holds the current session.
@@ -14,6 +17,7 @@ class AuthService extends ChangeNotifier {
 
   AuthUser? _user;
   bool _initializing = true;
+  Future<bool>? _refreshFuture;
 
   AuthService({http.Client? client, TokenStore? store})
       : _client = client ?? http.Client(),
@@ -28,20 +32,22 @@ class AuthService extends ChangeNotifier {
 
   Map<String, String> get _jsonHeaders => {'Content-Type': 'application/json'};
 
-  /// Load persisted tokens and, if present, fetch the profile.
+  /// Load persisted tokens, then validate the session without blocking startup.
   Future<void> bootstrap() async {
     await tokens.load();
-    if (tokens.hasTokens) {
-      try {
-        await fetchMe();
-      } catch (_) {
-        // token invalid/expired → try refresh, else clear
-        final ok = await tryRefresh();
-        if (!ok) await logout();
-      }
-    }
     _initializing = false;
     notifyListeners();
+    if (tokens.hasTokens) unawaited(_validateSession());
+  }
+
+  Future<void> _validateSession() async {
+    try {
+      await fetchMe();
+    } catch (_) {
+      // An expired access token may still be recoverable with the refresh token.
+      final refreshed = await tryRefresh();
+      if (!refreshed) await logout();
+    }
   }
 
   /// Step 1 of registration: create a pending account and email an OTP.
@@ -202,7 +208,18 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Exchange refresh token for a new pair. Returns false on failure.
-  Future<bool> tryRefresh() async {
+  Future<bool> tryRefresh() {
+    final pendingRefresh = _refreshFuture;
+    if (pendingRefresh != null) return pendingRefresh;
+
+    final refreshFuture = _refreshTokens();
+    _refreshFuture = refreshFuture;
+    return refreshFuture.whenComplete(() {
+      if (identical(_refreshFuture, refreshFuture)) _refreshFuture = null;
+    });
+  }
+
+  Future<bool> _refreshTokens() async {
     final rt = tokens.refreshToken;
     if (rt == null || rt.isEmpty) return false;
     try {

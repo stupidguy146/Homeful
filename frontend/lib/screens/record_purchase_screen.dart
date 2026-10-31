@@ -184,8 +184,9 @@ class _RecordPurchaseScreenState extends State<RecordPurchaseScreen> {
               if (snap.hasError) {
                 return ErrorView(
                     error: snap.error!,
-                    onRetry: () =>
-                        setState(() => _future = _api!.getProducts()));
+                    onRetry: () => setState(() {
+                          _future = _api!.getProducts();
+                        }));
               }
               var products = snap.data ?? [];
               if (_search.isNotEmpty) {
@@ -209,8 +210,7 @@ class _RecordPurchaseScreenState extends State<RecordPurchaseScreen> {
                     const SizedBox(height: AppSpacing.md),
                 itemBuilder: (context, i) {
                   final p = products[i];
-                  return _ProductPickTile(
-                      product: p, onTap: () => _select(p));
+                  return _ProductPickTile(product: p, onTap: () => _select(p));
                 },
               );
             },
@@ -349,14 +349,12 @@ class _ProductPickTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded,
-              color: AppColors.neutral400),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.neutral400),
         ],
       ),
     );

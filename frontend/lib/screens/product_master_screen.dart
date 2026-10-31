@@ -51,7 +51,11 @@ class _ProductMasterScreenState extends State<ProductMasterScreen> {
     super.dispose();
   }
 
-  void _reload() => setState(() => _future = _api!.getProducts());
+  void _reload() {
+    setState(() {
+      _future = _api!.getProducts();
+    });
+  }
 
   Future<void> _openAdd() async {
     final created = await Navigator.push<bool>(

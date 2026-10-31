@@ -34,6 +34,7 @@ flutter:
   assets:
     - assets/images/logos/
     - assets/images/icons/
+    - "assets/images/loading page/"
   shaders:
     - shaders/glass_lens.frag
   fonts:

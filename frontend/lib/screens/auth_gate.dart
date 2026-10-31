@@ -6,6 +6,7 @@ import '../widgets/app_lock_scope.dart';
 import 'login_screen.dart';
 import 'main_shell.dart';
 import 'pin_lock_screen.dart';
+import 'setup_pin_screen.dart';
 
 /// Decides which screen to show based on auth + app-lock state. Rebuilds
 /// automatically when [AuthService] notifies (login/logout/refresh).
@@ -25,6 +26,7 @@ class _AuthGateState extends State<AuthGate> {
   AuthService? _auth;
   bool? _wasAuthenticated;
   bool _checkedLock = false;
+  bool _lockReady = false;
   bool _pinRequired = false;
   bool _unlocked = false;
 
@@ -51,11 +53,10 @@ class _AuthGateState extends State<AuthGate> {
     if (isAuth != _wasAuthenticated) {
       _wasAuthenticated = isAuth;
       if (isAuth) {
-        _evaluateLock();
+        setState(() => _unlocked = !_pinRequired);
       } else {
-        // logged out: reset lock gate for the next login
+        // Keep the device PIN configuration when the account session ends.
         setState(() {
-          _pinRequired = false;
           _unlocked = false;
         });
       }
@@ -74,14 +75,24 @@ class _AuthGateState extends State<AuthGate> {
     setState(() {
       _pinRequired = hasPin;
       _unlocked = !hasPin;
+      _lockReady = true;
+    });
+  }
+
+  void _onPinSetupComplete() {
+    setState(() {
+      _pinRequired = true;
+      _unlocked = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = AuthScope.of(context);
-    if (auth.initializing || !_checkedLock) {
-      return const Scaffold(body: LoadingView());
+    if (auth.initializing ||
+        !_checkedLock ||
+        (auth.isAuthenticated && !_lockReady)) {
+      return const Scaffold(body: StartupLoadingView());
     }
     if (!auth.isAuthenticated) {
       return const LoginScreen();
@@ -89,6 +100,9 @@ class _AuthGateState extends State<AuthGate> {
     if (_pinRequired && !_unlocked) {
       return PinLockScreen(onUnlocked: () => setState(() => _unlocked = true));
     }
-    return const MainShell();
+    if (!_pinRequired) {
+      return SetupPinScreen(onComplete: _onPinSetupComplete);
+    }
+    return const MainShell(showStartupArtwork: false);
   }
 }

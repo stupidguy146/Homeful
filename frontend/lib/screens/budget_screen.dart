@@ -89,7 +89,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (b != null && mounted) setState(() => _budget = b);
   }
 
-  void _reload() => setState(() => _future = _load());
+  void _reload() {
+    setState(() {
+      _future = _load();
+    });
+  }
 
   /// Jump directly to a month (from tapping a bar in the chart).
   void _selectMonth(DateTime m) {

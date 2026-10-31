@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_lock_scope.dart';
+import '../widgets/app_widgets.dart';
 import '../widgets/pin_pad.dart';
 import '../i18n/locale_scope.dart';
-import 'main_shell.dart';
 
 /// Post-registration: create a 6-digit PIN (enter + confirm), then optionally
 /// enable biometric unlock. PIN is stored hashed locally; nothing leaves the
-/// device. Finishing enters the app ([MainShell]).
+/// device. Finishing notifies the auth gate to enter the app.
 class SetupPinScreen extends StatefulWidget {
-  const SetupPinScreen({super.key});
+  final VoidCallback onComplete;
+
+  const SetupPinScreen({super.key, required this.onComplete});
 
   @override
   State<SetupPinScreen> createState() => _SetupPinScreenState();
@@ -69,11 +71,7 @@ class _SetupPinScreenState extends State<SetupPinScreen> {
 
   void _enterApp() {
     if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const MainShell()),
-      (route) => false,
-    );
+    widget.onComplete();
   }
 
   @override
@@ -93,8 +91,7 @@ class _SetupPinScreenState extends State<SetupPinScreen> {
                     size: 88, color: AppColors.brand500),
                 const SizedBox(height: AppSpacing.xl),
                 Text(s.enableBiometric,
-                    textAlign: TextAlign.center,
-                    style: AppType.headlineMedium),
+                    textAlign: TextAlign.center, style: AppType.headlineMedium),
                 const SizedBox(height: AppSpacing.sm),
                 Text(s.useBiometric,
                     textAlign: TextAlign.center,
@@ -118,56 +115,131 @@ class _SetupPinScreenState extends State<SetupPinScreen> {
     final title = _step == _Step.enter ? s.setupPinTitle : s.confirmPinTitle;
     final subtitle =
         _step == _Step.enter ? s.setupPinSubtitle : s.confirmPinSubtitle;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient:
+              isDark ? AppGradients.backgroundDark : AppGradients.background,
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - AppSpacing.xl * 2,
-                ),
-                child: IntrinsicHeight(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: AppSpacing.xl),
-                      const Icon(Icons.lock_outline_rounded,
-                          size: 56, color: AppColors.brand500),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(title, style: AppType.headlineMedium),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(subtitle,
-                          textAlign: TextAlign.center,
-                          style: AppType.bodyLarge
-                              .copyWith(color: AppColors.neutral600)),
-                      if (_error) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        Text(s.pinMismatch,
-                            style: AppType.bodyMedium
-                                .copyWith(color: AppColors.danger)),
-                      ],
-                      const Spacer(),
-                      if (_saving)
-                        const CircularProgressIndicator()
-                      else
-                        PinPad(
-                          value: _pin,
-                          error: _error,
-                          onChanged: (v) => setState(() {
-                            _pin = v;
-                            _error = false;
-                          }),
-                          onCompleted: _onCompleted,
+                      GradientHeader(
+                        title: title,
+                        subtitle: s.appTitle,
+                        logoAsset: 'assets/images/logos/checkon_logo.png',
+                        logoHeight: 48,
+                        centerTitle: true,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.xl,
+                          AppSpacing.lg,
+                          AppSpacing.xl,
+                          AppSpacing.md,
                         ),
-                      const Spacer(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg),
+                        child: AppCard(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            AppSpacing.xl,
+                            AppSpacing.lg,
+                            AppSpacing.lg,
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  gradient: AppGradients.aqua,
+                                  borderRadius: AppRadius.rXl,
+                                  boxShadow:
+                                      AppShadows.brandGlow(AppColors.aqua),
+                                ),
+                                child: Icon(
+                                  _step == _Step.enter
+                                      ? Icons.lock_outline_rounded
+                                      : Icons.verified_user_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Text(
+                                subtitle,
+                                textAlign: TextAlign.center,
+                                style: AppType.bodyMedium.copyWith(
+                                  color: isDark
+                                      ? AppColors.darkTextMuted
+                                      : AppColors.neutral600,
+                                ),
+                              ),
+                              if (_error) ...[
+                                const SizedBox(height: AppSpacing.lg),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.sm,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.coralTint,
+                                    borderRadius: AppRadius.rMd,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.error_outline_rounded,
+                                        size: 18,
+                                        color: AppColors.danger,
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Text(
+                                        s.pinMismatch,
+                                        style: AppType.bodyMedium.copyWith(
+                                          color: AppColors.danger,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: AppSpacing.lg),
+                              if (_saving)
+                                const Padding(
+                                  padding: EdgeInsets.all(AppSpacing.xxl),
+                                  child: CircularProgressIndicator(),
+                                )
+                              else
+                                PinPad(
+                                  value: _pin,
+                                  error: _error,
+                                  onChanged: (v) => setState(() {
+                                    _pin = v;
+                                    _error = false;
+                                  }),
+                                  onCompleted: _onCompleted,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

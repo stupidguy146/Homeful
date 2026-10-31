@@ -32,10 +32,17 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  Future<void>? _initialization;
 
   /// Initialise the plugin + timezone database. Safe to call multiple times.
-  Future<void> init() async {
-    if (kIsWeb || _initialized) return;
+  Future<void> init() {
+    if (kIsWeb || _initialized) return Future<void>.value();
+    return _initialization ??= _initialize().whenComplete(() {
+      if (!_initialized) _initialization = null;
+    });
+  }
+
+  Future<void> _initialize() async {
     tzdata.initializeTimeZones();
     try {
       final timezone = await FlutterTimezone.getLocalTimezone();
@@ -49,8 +56,7 @@ class NotificationService {
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    const androidInit =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const macInit = DarwinInitializationSettings();
 
     await _plugin.initialize(
@@ -166,8 +172,8 @@ class NotificationService {
   /// tomorrow.
   tz.TZDateTime _nextNineAm() {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(
-        tz.local, now.year, now.month, now.day, _notifyHour);
+    var scheduled =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, _notifyHour);
     if (!scheduled.isAfter(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }

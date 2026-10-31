@@ -12,6 +12,7 @@ class PinPad extends StatelessWidget {
   final int length;
   final ValueChanged<String> onChanged;
   final ValueChanged<String>? onCompleted;
+  final double maxKeySize;
 
   /// Optional extra key at the bottom-left (e.g. biometric). null hides it.
   final Widget? leadingKey;
@@ -25,6 +26,7 @@ class PinPad extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.onCompleted,
+    this.maxKeySize = 86,
     this.length = 6,
     this.leadingKey,
     this.onLeadingKey,
@@ -53,28 +55,22 @@ class PinPad extends StatelessWidget {
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width;
 
-        // Column gap between keys, scaled but clamped.
-        final gap = (maxW * 0.04).clamp(8.0, 20.0);
-
-        // 3 keys + 2 gaps must fit the width. Clamp key width to a comfy range.
-        final keyW = ((maxW - gap * 2) / 3).clamp(64.0, 104.0);
-        // Keep keys slightly shorter than wide, with a floor for touch targets.
-        final keyH = (keyW * 0.74).clamp(52.0, 76.0);
-
-        // Dots & spacing scale with key size.
-        final dotSize = (keyW * 0.2).clamp(14.0, 20.0);
-        final dotGap = (keyW * 0.1).clamp(6.0, 12.0);
-
-        // Vertical spacing between rows scales a little with key height.
-        final rowGap = (keyH * 0.12).clamp(6.0, 14.0);
-
-        final fontSize = (keyW * 0.34).clamp(22.0, 32.0);
+        final gap = (maxW * 0.07).clamp(12.0, 22.0).toDouble();
+        var keySize = ((maxW - gap * 2) / 3).clamp(64.0, 86.0).toDouble();
+        if (constraints.maxHeight.isFinite) {
+          final heightLimit = (constraints.maxHeight / 5.24).clamp(40.0, 86.0);
+          keySize = keySize.clamp(40.0, heightLimit).toDouble();
+        }
+        keySize = keySize.clamp(40.0, maxKeySize.clamp(40.0, 86.0)).toDouble();
+        final dotSize = (keySize * 0.2).clamp(14.0, 18.0).toDouble();
+        final dotGap = (keySize * 0.1).clamp(6.0, 10.0).toDouble();
+        final rowGap = (keySize * 0.1).clamp(6.0, 9.0).toDouble();
+        final fontSize = (keySize * 0.38).clamp(24.0, 32.0).toDouble();
 
         Widget digitKey(String d) => _DigitKey(
               digit: d,
               onTap: () => _tap(d),
-              width: keyW,
-              height: keyH,
+              size: keySize,
               fontSize: fontSize,
             );
 
@@ -86,7 +82,8 @@ class PinPad extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 for (var i = 0; i < length; i++)
-                  Container(
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
                     margin: EdgeInsets.symmetric(horizontal: dotGap),
                     width: dotSize,
                     height: dotSize,
@@ -97,8 +94,19 @@ class PinPad extends StatelessWidget {
                           : Colors.transparent,
                       border: Border.all(
                         color: error ? AppColors.danger : AppColors.neutral300,
-                        width: 1.5,
+                        width: i < value.length ? 0 : 1.5,
                       ),
+                      boxShadow: i < value.length
+                          ? [
+                              BoxShadow(
+                                color: (error
+                                        ? AppColors.danger
+                                        : AppColors.brand500)
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 8,
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
               ],
@@ -128,26 +136,29 @@ class PinPad extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: keyW,
-                    height: keyH,
-                    child: leadingKey != null
-                        ? IconButton(
-                            onPressed: onLeadingKey,
-                            iconSize: fontSize,
+                    width: keySize,
+                    height: keySize,
+                    child: leadingKey == null
+                        ? null
+                        : _PinUtilityKey(
                             icon: leadingKey!,
-                          )
-                        : null,
+                            onTap: onLeadingKey,
+                            size: keySize,
+                          ),
                   ),
                   SizedBox(width: gap),
                   digitKey('0'),
                   SizedBox(width: gap),
                   SizedBox(
-                    width: keyW,
-                    height: keyH,
-                    child: IconButton(
-                      onPressed: _backspace,
-                      iconSize: fontSize * 0.9,
-                      icon: const Icon(Icons.backspace_outlined),
+                    width: keySize,
+                    height: keySize,
+                    child: _PinUtilityKey(
+                      icon: Icon(
+                        Icons.backspace_outlined,
+                        size: fontSize * 0.78,
+                      ),
+                      onTap: _backspace,
+                      size: keySize,
                     ),
                   ),
                 ],
@@ -163,33 +174,122 @@ class PinPad extends StatelessWidget {
 class _DigitKey extends StatelessWidget {
   final String digit;
   final VoidCallback onTap;
-  final double width;
-  final double height;
+  final double size;
   final double fontSize;
 
   const _DigitKey({
     required this.digit,
     required this.onTap,
-    required this.width,
-    required this.height,
+    required this.size,
     required this.fontSize,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: TextButton(
-        onPressed: onTap,
-        style: TextButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
+    final theme = Theme.of(context);
+    return _PinKeySurface(
+      size: size,
+      onTap: onTap,
+      child: Text(
+        digit,
+        style: AppType.callout.copyWith(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w500,
+          color: theme.colorScheme.onSurface,
         ),
-        child: Text(
-          digit,
-          style: AppType.headlineMedium.copyWith(
-            fontSize: fontSize,
-            color: Theme.of(context).colorScheme.onSurface,
+      ),
+    );
+  }
+}
+
+class _PinUtilityKey extends StatelessWidget {
+  final Widget icon;
+  final VoidCallback? onTap;
+  final double size;
+
+  const _PinUtilityKey({
+    required this.icon,
+    required this.onTap,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return _PinKeySurface(
+      size: size,
+      onTap: onTap,
+      child: IconTheme(
+        data: IconThemeData(color: theme.colorScheme.onSurfaceVariant),
+        child: icon,
+      ),
+    );
+  }
+}
+
+class _PinKeySurface extends StatefulWidget {
+  final double size;
+  final VoidCallback? onTap;
+  final Widget child;
+
+  const _PinKeySurface({
+    required this.size,
+    required this.onTap,
+    required this.child,
+  });
+
+  @override
+  State<_PinKeySurface> createState() => _PinKeySurfaceState();
+}
+
+class _PinKeySurfaceState extends State<_PinKeySurface> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox.square(
+      dimension: widget.size,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _pressed
+                ? (isDark ? AppColors.darkSurfaceAlt : AppColors.brand50)
+                : Colors.transparent,
+            border: Border.all(
+              color: _pressed
+                  ? AppColors.brand500.withValues(alpha: 0.7)
+                  : Colors.transparent,
+              width: 1.5,
+            ),
+            boxShadow: _pressed
+                ? [
+                    BoxShadow(
+                      color: AppColors.brand900.withValues(
+                        alpha: isDark ? 0.18 : 0.12,
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Ink(
+            decoration: const BoxDecoration(shape: BoxShape.circle),
+            child: InkWell(
+              onTap: widget.onTap,
+              onHighlightChanged: (pressed) {
+                if (_pressed != pressed) setState(() => _pressed = pressed);
+              },
+              customBorder: const CircleBorder(),
+              splashColor: AppColors.brand400.withValues(alpha: 0.2),
+              highlightColor: AppColors.brand300.withValues(alpha: 0.12),
+              child: Center(child: widget.child),
+            ),
           ),
         ),
       ),

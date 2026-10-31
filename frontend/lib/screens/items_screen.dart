@@ -236,7 +236,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   Future<List<Product>> _load() => _api!.getProductsByMonth(_monthKey);
 
-  void _reload() => setState(() => _future = _load());
+  void _reload() {
+    setState(() {
+      _future = _load();
+    });
+  }
 
   Future<bool> _confirmDelete(Product p) async {
     final s = context.strings;

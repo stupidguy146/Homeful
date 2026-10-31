@@ -68,7 +68,9 @@ class GradientHeader extends StatelessWidget {
   /// Optional brand logo shown above the title (e.g. on the login/register
   /// entry screens). null hides it.
   final String? logoAsset;
+  final Widget? logoWidget;
   final double logoHeight;
+  final bool logoBackground;
 
   /// Force-center the logo + subtitle + title. When null, falls back to the
   /// legacy behaviour (centered only when a [leading] back button exists).
@@ -83,7 +85,9 @@ class GradientHeader extends StatelessWidget {
     this.stats = const [],
     this.gradient,
     this.logoAsset,
+    this.logoWidget,
     this.logoHeight = 44,
+    this.logoBackground = true,
     this.centerTitle,
     this.padding = const EdgeInsets.fromLTRB(
         AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.lg),
@@ -112,24 +116,29 @@ class GradientHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (logoAsset != null) ...[
+            if (logoAsset != null || logoWidget != null) ...[
               Align(
                 alignment: centered ? Alignment.center : Alignment.centerLeft,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: AppRadius.rLg,
-                    boxShadow: AppShadows.sm,
-                  ),
-                  child: Image.asset(
-                    logoAsset!,
-                    height: logoHeight,
-                    fit: BoxFit.contain,
-                  ),
+                  padding: logoBackground
+                      ? const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                          vertical: AppSpacing.md,
+                        )
+                      : EdgeInsets.zero,
+                  decoration: logoBackground
+                      ? BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: AppRadius.rLg,
+                          boxShadow: AppShadows.sm,
+                        )
+                      : null,
+                  child: logoWidget ??
+                      Image.asset(
+                        logoAsset!,
+                        height: logoHeight,
+                        fit: BoxFit.contain,
+                      ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -443,6 +452,21 @@ class ErrorView extends StatelessWidget {
         onPressed: onRetry,
         icon: const Icon(Icons.refresh_rounded, size: 18),
         label: const Text('ลองใหม่'),
+      ),
+    );
+  }
+}
+
+class StartupLoadingView extends StatelessWidget {
+  const StartupLoadingView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: Image.asset(
+        'assets/images/loading page/image.png',
+        key: ValueKey('startup-artwork'),
+        fit: BoxFit.cover,
       ),
     );
   }

@@ -29,7 +29,9 @@ class _ExpiringSoonScreenState extends State<ExpiringSoonScreen> {
   }
 
   void _reload() {
-    setState(() => _future = _api!.getExpiringSoon(days: _days));
+    setState(() {
+      _future = _api!.getExpiringSoon(days: _days);
+    });
   }
 
   @override

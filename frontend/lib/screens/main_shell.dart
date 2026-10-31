@@ -9,7 +9,6 @@ import '../i18n/locale_scope.dart';
 import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../widgets/notification_bell.dart';
-import '../widgets/app_lock_scope.dart';
 import 'change_password_screen.dart';
 import 'change_pin_screen.dart';
 import 'edit_profile_screen.dart';
@@ -22,7 +21,12 @@ import 'product_master_screen.dart';
 
 /// Main app shell with Checkon's five-tab bottom navigation.
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  final bool showStartupArtwork;
+
+  const MainShell({
+    super.key,
+    this.showStartupArtwork = true,
+  });
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -30,8 +34,14 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
+  bool _homeReady = false;
 
   void _goItems() => setState(() => _index = 1);
+
+  void _onHomeReady() {
+    if (_homeReady || !mounted) return;
+    setState(() => _homeReady = true);
+  }
 
   void _selectTab(int index) {
     if (index == _index) return;
@@ -43,45 +53,64 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final s = context.strings;
     final pages = [
-      HomeScreen(onSeeAllItems: _goItems),
+      HomeScreen(
+        onSeeAllItems: _goItems,
+        onInitialLoadComplete: _onHomeReady,
+        showStartupArtwork: widget.showStartupArtwork,
+      ),
       const ItemsScreen(),
       const ToBuyScreen(),
       const BudgetScreen(),
       const _MenuScreen(),
     ];
     return Scaffold(
-      body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: _GlassNavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _selectTab,
-        destinations: [
-          _GlassNavItem(
-            icon: Icons.home_outlined,
-            selectedIcon: Icons.home_rounded,
-            label: s.navHome,
-          ),
-          _GlassNavItem(
-            icon: Icons.inventory_2_outlined,
-            selectedIcon: Icons.inventory_2_rounded,
-            label: s.navItems,
-          ),
-          _GlassNavItem(
-            icon: Icons.shopping_cart_outlined,
-            selectedIcon: Icons.shopping_cart_rounded,
-            label: s.navToBuy,
-          ),
-          _GlassNavItem(
-            icon: Icons.account_balance_wallet_outlined,
-            selectedIcon: Icons.account_balance_wallet_rounded,
-            label: s.navBudget,
-          ),
-          _GlassNavItem(
-            icon: Icons.menu_rounded,
-            selectedIcon: Icons.menu_open_rounded,
-            label: s.navMenu,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          IndexedStack(index: _index, children: pages),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 350),
+            child: _homeReady || !widget.showStartupArtwork
+                ? const SizedBox.shrink(key: ValueKey('home-ready'))
+                : const StartupLoadingView(
+                    key: ValueKey('home-startup-artwork'),
+                  ),
           ),
         ],
       ),
+      bottomNavigationBar: _homeReady || !widget.showStartupArtwork
+          ? _GlassNavigationBar(
+              selectedIndex: _index,
+              onDestinationSelected: _selectTab,
+              destinations: [
+                _GlassNavItem(
+                  icon: Icons.home_outlined,
+                  selectedIcon: Icons.home_rounded,
+                  label: s.navHome,
+                ),
+                _GlassNavItem(
+                  icon: Icons.inventory_2_outlined,
+                  selectedIcon: Icons.inventory_2_rounded,
+                  label: s.navItems,
+                ),
+                _GlassNavItem(
+                  icon: Icons.shopping_cart_outlined,
+                  selectedIcon: Icons.shopping_cart_rounded,
+                  label: s.navToBuy,
+                ),
+                _GlassNavItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  selectedIcon: Icons.account_balance_wallet_rounded,
+                  label: s.navBudget,
+                ),
+                _GlassNavItem(
+                  icon: Icons.menu_rounded,
+                  selectedIcon: Icons.menu_open_rounded,
+                  label: s.navMenu,
+                ),
+              ],
+            )
+          : null,
     );
   }
 }
@@ -555,7 +584,9 @@ class _MenuScreenState extends State<_MenuScreen> {
       MaterialPageRoute(builder: (_) => const EditProfileScreen()),
     );
     if (changed == true && mounted) {
-      setState(() => _profile = _customer!.getMyProfile());
+      setState(() {
+        _profile = _customer!.getMyProfile();
+      });
     }
   }
 
@@ -648,9 +679,7 @@ class _MenuScreenState extends State<_MenuScreen> {
     if (shouldLogout == true && mounted) {
       // read scopes before the first await to avoid using a stale context
       final auth = AuthScope.read(context);
-      final lock = AppLockScope.read(context);
-      await lock.clear(); // remove local PIN/biometric so re-login is clean
-      await auth.logout(); // clears tokens + notifies → AuthGate → LoginScreen
+      await auth.logout(); // keeps the device PIN and clears the login session
     }
   }
 

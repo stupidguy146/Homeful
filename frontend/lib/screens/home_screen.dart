@@ -1,26 +1,34 @@
+import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/expiring_item.dart';
 import '../models/customer_profile.dart';
+import '../models/expiring_item.dart';
 import '../services/api_service.dart';
 import '../services/customer_service.dart';
-import '../services/notification_service.dart';
 import '../services/notification_read_store.dart';
+import '../services/notification_service.dart';
 import '../theme/app_tokens.dart';
 import '../widgets/app_widgets.dart';
 import '../widgets/auth_scope.dart';
 import '../widgets/notification_bell.dart';
-import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
+import '../state/data_refresh.dart';
 import 'item_detail_screen.dart';
 
 /// Checkon home dashboard built from household items and analytics.
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onSeeAllItems;
-  const HomeScreen({super.key, this.onSeeAllItems});
+  final VoidCallback? onInitialLoadComplete;
+  final bool showStartupArtwork;
+  const HomeScreen({
+    super.key,
+    this.onSeeAllItems,
+    this.onInitialLoadComplete,
+    this.showStartupArtwork = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -31,6 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
   CustomerService? _customer;
   final _store = NotificationStore();
   Future<_HomeData>? _future;
+  bool _initialLoadComplete = false;
+  bool _initialLoadNotified = false;
 
   @override
   void didChangeDependencies() {
@@ -39,32 +49,63 @@ class _HomeScreenState extends State<HomeScreen> {
       final auth = AuthScope.of(context);
       _api = ApiService(auth: auth);
       _customer = CustomerService(auth: auth);
-      _future = _load();
+      _future = _loadInitial();
     }
     // re-fetch when global data changes (create/update/delete/profile)
     final rev = DataScope.watch(context);
     if (rev != _rev) {
       _rev = rev;
-      if (_api != null) _future = _load();
+      if (_api != null) {
+        _future = _initialLoadComplete ? _load() : _loadInitial();
+      }
     }
   }
 
   int _rev = 0;
 
+  Future<_HomeData> _loadInitial() async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      return await _load();
+    } finally {
+      if (widget.showStartupArtwork) {
+        const minimumSplashDuration = Duration(milliseconds: 1500);
+        final remaining = minimumSplashDuration - stopwatch.elapsed;
+        if (remaining > Duration.zero) await Future<void>.delayed(remaining);
+      }
+      _initialLoadComplete = true;
+    }
+  }
+
   Future<_HomeData> _load() async {
-    final summary = await _api!.getSummary();
-    final expiring = await _api!.getExpiringSoon(days: 30);
+    final summaryFuture = _api!.getSummary();
+    final expiringFuture = _api!.getExpiringSoon(days: 30);
+    final profileFuture = _loadProfile();
+    final results = await Future.wait<Object?>(
+      [summaryFuture, expiringFuture, profileFuture],
+    );
+    final summary = results[0] as AnalyticsSummary;
+    final expiring = results[1] as List<ExpiringItem>;
+    final profile = results[2] as CustomerProfile?;
+
     // keep OS reminders in sync on every home load (app start / after login /
     // after add-edit-delete via DataScope). no-op on web.
     if (mounted) {
-      await NotificationService.instance
-          .syncExpiring(expiring, context.strings);
-    }
-    CustomerProfile? profile;
-    try {
-      profile = await _customer!.getMyProfile();
-    } catch (_) {
-      profile = null;
+      unawaited(
+        NotificationService.instance
+            .syncExpiring(expiring, context.strings)
+            .catchError((Object error, StackTrace stackTrace) {
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: error,
+              stack: stackTrace,
+              library: 'notifications',
+              context:
+                  ErrorDescription('while syncing expiring-item reminders'),
+            ),
+          );
+        }),
+      );
     }
     // bell badge = expiring within threshold AND not yet read (local).
     // reuse the same event store the notifications screen uses, so retention
@@ -84,9 +125,17 @@ class _HomeScreenState extends State<HomeScreen> {
         profile: profile);
   }
 
+  Future<CustomerProfile?> _loadProfile() async {
+    try {
+      return await _customer!.getMyProfile();
+    } catch (_) {
+      return null;
+    }
+  }
+
   void _reload() {
     setState(() {
-      _future = _load();
+      _future = _initialLoadComplete ? _load() : _loadInitial();
     });
   }
 
@@ -103,8 +152,18 @@ class _HomeScreenState extends State<HomeScreen> {
         child: FutureBuilder<_HomeData>(
           future: _future,
           builder: (context, snap) {
+            if (_initialLoadComplete &&
+                snap.connectionState != ConnectionState.waiting &&
+                !_initialLoadNotified) {
+              _initialLoadNotified = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) widget.onInitialLoadComplete?.call();
+              });
+            }
             if (snap.connectionState == ConnectionState.waiting) {
-              return const SkeletonList();
+              return _initialLoadComplete || !widget.showStartupArtwork
+                  ? const SkeletonList()
+                  : const StartupLoadingView();
             }
             if (snap.hasError) {
               return ErrorView(error: snap.error!, onRetry: _reload);

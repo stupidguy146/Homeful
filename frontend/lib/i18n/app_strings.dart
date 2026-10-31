@@ -9,7 +9,8 @@ class AppStrings {
 
   // ---------- generic ----------
   String get appTitle => _t('เช็คก่อน', 'Checkon');
-  String get appTagline => _t('จัดการของใช้ในบ้าน ให้ชีวิตง่ายขึ้น', 'Home Consumable Tracker');
+  String get appTagline =>
+      _t('จัดการของใช้ในบ้าน ให้ชีวิตง่ายขึ้น', 'Home Consumable Tracker');
   String get save => _t('บันทึก', 'Save');
   String get cancel => _t('ยกเลิก', 'Cancel');
   String get retry => _t('ลองใหม่', 'Retry');
@@ -18,8 +19,8 @@ class AppStrings {
 
   // ---------- auth: login ----------
   String get welcomeBack => _t('ยินดีต้อนรับกลับ', 'Welcome back');
-  String get loginSubtitle =>
-      _t('เข้าสู่ระบบเพื่อจัดการรายการซื้อของ', 'Sign in to manage your shopping list');
+  String get loginSubtitle => _t('เข้าสู่ระบบเพื่อจัดการรายการซื้อของ',
+      'Sign in to manage your shopping list');
   String get email => _t('อีเมล', 'Email');
   String get emailOrUsername => _t('อีเมลหรือชื่อผู้ใช้', 'Email or username');
   String get enterIdentifier =>
@@ -34,8 +35,7 @@ class AppStrings {
 
   // ---------- auth: register ----------
   String get createAccount => _t('สร้างบัญชีใหม่', 'Create account');
-  String get registerSubtitle => _t(
-      'เริ่มจัดการรายการซื้อของใช้ในบ้านของคุณ',
+  String get registerSubtitle => _t('เริ่มจัดการรายการซื้อของใช้ในบ้านของคุณ',
       'Start managing your household shopping list');
   String get displayName => _t('ชื่อที่แสดง', 'Display name');
   String get enterDisplayName => _t('กรอกชื่อที่แสดง', 'Enter a display name');
@@ -44,8 +44,7 @@ class AppStrings {
   String get username => _t('ชื่อผู้ใช้ (username)', 'Username');
   String get enterFirstName => _t('กรอกชื่อจริง', 'Enter your first name');
   String get enterLastName => _t('กรอกนามสกุล', 'Enter your last name');
-  String get usernameRule => _t(
-      'username ต้องยาว 3-30 ตัว (a-z, 0-9, . _ -)',
+  String get usernameRule => _t('username ต้องยาว 3-30 ตัว (a-z, 0-9, . _ -)',
       'Username must be 3-30 chars (a-z, 0-9, . _ -)');
   String get confirmPassword => _t('ยืนยันรหัสผ่าน', 'Confirm password');
   String get passwordMin8 =>
@@ -77,25 +76,26 @@ class AppStrings {
   String otpSentTo(String email) => _t(
       'เราได้ส่งรหัส 6 หลักไปที่\n$email', 'We sent a 6-digit code to\n$email');
   String get enterOtp => _t('กรอกรหัส OTP', 'Enter the OTP code');
-  String get otpMustBe6 => _t('รหัสต้องเป็นตัวเลข 6 หลัก', 'Code must be 6 digits');
+  String get otpMustBe6 =>
+      _t('รหัสต้องเป็นตัวเลข 6 หลัก', 'Code must be 6 digits');
   String get verifyOtpButton => _t('ยืนยันรหัส', 'Verify code');
   String get didntGetCode => _t('ไม่ได้รับรหัส?', "Didn't get the code?");
   String get resendOtp => _t('ส่งรหัสใหม่', 'Resend code');
   String resendOtpIn(int sec) =>
       _t('ส่งรหัสใหม่ได้ใน $sec วินาที', 'Resend in $sec s');
   String get otpResent => _t('ส่งรหัสใหม่แล้ว', 'A new code has been sent');
-  String get otpDevHint => _t(
-      '(dev: ดูรหัสใน console ของ auth-service)',
+  String get otpDevHint => _t('(dev: ดูรหัสใน console ของ auth-service)',
       '(dev: see the code in the auth-service console)');
 
   // ---------- auth: set password (after OTP) ----------
   String get setPasswordTitle => _t('ตั้งรหัสผ่าน', 'Set your password');
-  String get setPasswordSubtitle => _t(
-      'ตั้งรหัสผ่านเพื่อเข้าใช้งานบัญชีของคุณ',
+  String get setPasswordSubtitle => _t('ตั้งรหัสผ่านเพื่อเข้าใช้งานบัญชีของคุณ',
       'Create a password to secure your account');
   String get passwordLabel => _t('รหัสผ่าน', 'Password');
-  String get passwordRequirements => _t('เงื่อนไขรหัสผ่าน', 'Password requirements');
-  String get ruleMinLength => _t('อย่างน้อย 8 ตัวอักษร', 'At least 8 characters');
+  String get passwordRequirements =>
+      _t('เงื่อนไขรหัสผ่าน', 'Password requirements');
+  String get ruleMinLength =>
+      _t('อย่างน้อย 8 ตัวอักษร', 'At least 8 characters');
   String get ruleUppercase =>
       _t('มีตัวพิมพ์ใหญ่ (A-Z)', 'An uppercase letter (A-Z)');
   String get ruleLowercase =>
@@ -108,20 +108,22 @@ class AppStrings {
   String get strengthFair => _t('พอใช้', 'Fair');
   String get strengthGood => _t('ดี', 'Good');
   String get strengthStrong => _t('แข็งแรง', 'Strong');
-  String get passwordTooWeak =>
-      _t('รหัสผ่านยังไม่ผ่านเงื่อนไข', 'Password does not meet the requirements');
+  String get passwordTooWeak => _t(
+      'รหัสผ่านยังไม่ผ่านเงื่อนไข', 'Password does not meet the requirements');
   String get createAccountButton => _t('สร้างบัญชี', 'Create account');
 
   // ---------- auth: PIN & biometric ----------
   String get setupPinTitle => _t('ตั้งรหัส PIN', 'Set up a PIN');
-  String get setupPinSubtitle => _t(
-      'ตั้ง PIN 6 หลักสำหรับปลดล็อกแอป',
+  String get setupPinSubtitle => _t('ตั้ง PIN 6 หลักสำหรับปลดล็อกแอป',
       'Create a 6-digit PIN to unlock the app');
   String get confirmPinTitle => _t('ยืนยันรหัส PIN', 'Confirm your PIN');
   String get confirmPinSubtitle =>
       _t('กรอก PIN อีกครั้งเพื่อยืนยัน', 'Enter your PIN again to confirm');
-  String get pinMismatch => _t('PIN ไม่ตรงกัน ลองใหม่', 'PINs do not match, try again');
+  String get pinMismatch =>
+      _t('PIN ไม่ตรงกัน ลองใหม่', 'PINs do not match, try again');
   String get enterPinTitle => _t('กรอกรหัส PIN', 'Enter your PIN');
+  String get enterSixDigitPin =>
+      _t('กรุณาใส่ PIN 6 ตัว', 'Enter your 6-digit PIN');
   String get wrongPin => _t('PIN ไม่ถูกต้อง', 'Incorrect PIN');
   String get useBiometric =>
       _t('ใช้ลายนิ้วมือ / สแกนใบหน้า', 'Use fingerprint / face');
@@ -138,11 +140,9 @@ class AppStrings {
 
   // ---------- auth: change PIN (menu) ----------
   String get changePin => _t('เปลี่ยนรหัส PIN', 'Change PIN');
-  String get changePinMenu =>
-      _t('PIN และการปลดล็อก', 'PIN & app lock');
+  String get changePinMenu => _t('PIN และการปลดล็อก', 'PIN & app lock');
   String get enterCurrentPin => _t('กรอก PIN ปัจจุบัน', 'Enter current PIN');
-  String get enterCurrentPinSubtitle => _t(
-      'ยืนยัน PIN เดิมก่อนตั้งรหัสใหม่',
+  String get enterCurrentPinSubtitle => _t('ยืนยัน PIN เดิมก่อนตั้งรหัสใหม่',
       'Confirm your current PIN before setting a new one');
   String get pinChanged => _t('เปลี่ยน PIN สำเร็จ', 'PIN updated');
 
@@ -150,14 +150,16 @@ class AppStrings {
   String get security => _t('ความปลอดภัย', 'Security');
   String get changePassword => _t('เปลี่ยนรหัสผ่าน', 'Change password');
   String get oldPassword => _t('รหัสผ่านเดิม', 'Current password');
-  String get enterOldPassword => _t('กรอกรหัสผ่านเดิม', 'Enter current password');
+  String get enterOldPassword =>
+      _t('กรอกรหัสผ่านเดิม', 'Enter current password');
   String get newPasswordMin8 =>
       _t('รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)', 'New password (min 8 chars)');
-  String get newPasswordMin8Rule => _t(
-      'รหัสผ่านใหม่ต้องยาวอย่างน้อย 8 ตัว', 'New password must be at least 8 chars');
+  String get newPasswordMin8Rule => _t('รหัสผ่านใหม่ต้องยาวอย่างน้อย 8 ตัว',
+      'New password must be at least 8 chars');
   String get confirmNewPassword =>
       _t('ยืนยันรหัสผ่านใหม่', 'Confirm new password');
-  String get passwordsNotMatch => _t('รหัสผ่านไม่ตรงกัน', 'Passwords do not match');
+  String get passwordsNotMatch =>
+      _t('รหัสผ่านไม่ตรงกัน', 'Passwords do not match');
   String get saveNewPassword => _t('บันทึกรหัสผ่านใหม่', 'Save new password');
   String get changePasswordSuccess =>
       _t('เปลี่ยนรหัสผ่านสำเร็จ', 'Password changed');
@@ -165,13 +167,15 @@ class AppStrings {
 
   // ---------- auth: forgot / reset ----------
   String get forgotTitle => _t('ลืมรหัสผ่าน', 'Forgot password');
-  String get forgotHint => _t('กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านไปให้',
+  String get forgotHint => _t(
+      'กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านไปให้',
       "Enter your email and we'll send a reset link");
   String get sendResetLink => _t('ส่งลิงก์รีเซ็ต', 'Send reset link');
   String get resetSentInfo => _t(
       'ถ้ามีบัญชีนี้อยู่ ระบบได้ส่งอีเมลรีเซ็ตให้แล้ว\n(dev: ดูลิงก์/preview ใน console ของ auth-service)',
       'If the account exists, a reset email has been sent\n(dev: see the link/preview in the auth-service console)');
-  String get haveTokenAlready => _t('ฉันมีรหัส (token) แล้ว', 'I already have a token');
+  String get haveTokenAlready =>
+      _t('ฉันมีรหัส (token) แล้ว', 'I already have a token');
   String get resetTitle => _t('ตั้งรหัสผ่านใหม่', 'Reset password');
   String get tokenFromEmail => _t('รหัส (token) จากอีเมล', 'Token from email');
   String get enterToken => _t('กรอก token', 'Enter the token');
@@ -179,7 +183,8 @@ class AppStrings {
       'Password reset — you can sign in now');
 
   // ---------- email verification ----------
-  String get emailNotVerified => _t('อีเมลยังไม่ได้ยืนยัน', 'Email not verified');
+  String get emailNotVerified =>
+      _t('อีเมลยังไม่ได้ยืนยัน', 'Email not verified');
   String get verificationSent => _t(
       'ส่งอีเมลยืนยันแล้ว ตรวจกล่องจดหมาย (dev: ดู preview ใน console)',
       'Verification email sent, check your inbox (dev: see preview in console)');
@@ -193,8 +198,8 @@ class AppStrings {
   String get monthsCount => _t('จำนวนเดือน', 'Months');
   String get totalItems => _t('รวมรายการ', 'Items');
   String get noMonths => _t('ยังไม่มีเดือน', 'No months yet');
-  String get noMonthsHint => _t(
-      'กดปุ่ม + ด้านล่างเพื่อเพิ่มเดือนแรกของคุณ', 'Tap + below to add your first month');
+  String get noMonthsHint => _t('กดปุ่ม + ด้านล่างเพื่อเพิ่มเดือนแรกของคุณ',
+      'Tap + below to add your first month');
   String get addMonth => _t('เพิ่มเดือน', 'Add month');
   String get newMonth => _t('เพิ่มเดือนใหม่', 'New month');
   String get monthLabel => _t('เดือน', 'Month');
@@ -210,7 +215,8 @@ class AppStrings {
   String get itemsLabel => _t('รายการ', 'Items');
   String get piecesLabel => _t('ชิ้น', 'Pcs');
   String get noItems => _t('ยังไม่มีรายการ', 'No items yet');
-  String get noItemsHint => _t('กดปุ่ม + เพื่อเพิ่มของชิ้นแรก', 'Tap + to add the first item');
+  String get noItemsHint =>
+      _t('กดปุ่ม + เพื่อเพิ่มของชิ้นแรก', 'Tap + to add the first item');
   String get addItem => _t('เพิ่มรายการ', 'Add item');
   String get addItemTitle => _t('เพิ่มสินค้า', 'Add item');
   String get editItemTitle => _t('แก้ไขสินค้า', 'Edit item');
@@ -218,35 +224,33 @@ class AppStrings {
   String get lettersNumbersSpacesOnly => _t(
       'ใช้ได้เฉพาะตัวอักษร ตัวเลข และเว้นวรรค',
       'Use letters, numbers, and spaces only');
-  String get lettersOnly => _t(
-      'ใช้ได้เฉพาะตัวอักษรและเว้นวรรค', 'Use letters and spaces only');
-  String get decimalNumberOnly => _t(
-      'กรอกเป็นตัวเลขทศนิยมเท่านั้น', 'Enter a decimal number only');
-  String get priceRequired =>
-      _t('กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม', 'Enter a price with up to 2 decimal places');
+  String get lettersOnly =>
+      _t('ใช้ได้เฉพาะตัวอักษรและเว้นวรรค', 'Use letters and spaces only');
+  String get decimalNumberOnly =>
+      _t('กรอกเป็นตัวเลขทศนิยมเท่านั้น', 'Enter a decimal number only');
+  String get priceRequired => _t('กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม',
+      'Enter a price with up to 2 decimal places');
   String get positiveIntegerOnly => _t(
       'กรอกเป็นจำนวนเต็มที่มากกว่า 0', 'Enter a whole number greater than 0');
-  String get priceFormat => _t(
-      'กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม',
+  String get priceFormat => _t('กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม',
       'Enter a number with no more than 2 decimal places');
   String get scanBarcode => _t('สแกนบาร์โค้ด', 'Scan barcode');
   String get addItemHow =>
       _t('เพิ่มสินค้าอย่างไร?', 'How do you want to add an item?');
-  String get scanBarcodeOption =>
-      _t('สแกนบาร์โค้ด', 'Scan a barcode');
+  String get scanBarcodeOption => _t('สแกนบาร์โค้ด', 'Scan a barcode');
   String get scanBarcodeOptionHint => _t(
       'ใช้กล้องสแกนแล้วเติมข้อมูลให้อัตโนมัติ',
       'Use the camera and auto-fill the details');
   String get manualEntryOption => _t('กรอกเอง', 'Enter manually');
   String get manualEntryOptionHint =>
       _t('กรอกข้อมูลสินค้าด้วยตัวเอง', 'Fill in the product details yourself');
-  String get pointCameraAtBarcode =>
-      _t('วางบาร์โค้ดสินค้าไว้ในกรอบกล้อง', 'Point the camera at a product barcode');
+  String get pointCameraAtBarcode => _t('วางบาร์โค้ดสินค้าไว้ในกรอบกล้อง',
+      'Point the camera at a product barcode');
   String get cameraPermissionDenied => _t(
       'ไม่ได้รับอนุญาตให้ใช้กล้อง\nเปิดสิทธิ์กล้องให้แอปในหน้าตั้งค่า',
       'Camera permission denied.\nEnable camera access for this app in Settings.');
-  String get cameraError =>
-      _t('เปิดกล้องไม่ได้ ลองใหม่อีกครั้ง', 'Unable to open the camera. Please try again.');
+  String get cameraError => _t('เปิดกล้องไม่ได้ ลองใหม่อีกครั้ง',
+      'Unable to open the camera. Please try again.');
   String scannedBarcode(String code) => _t('บาร์โค้ด: $code', 'Barcode: $code');
   String get barcodeLookupNotFound => _t(
       'ไม่พบข้อมูลสินค้า กรอกข้อมูลเองได้เลย',
@@ -256,28 +260,28 @@ class AppStrings {
       'Product details filled in. Review them before saving.');
   String get quantity => _t('จำนวน', 'Quantity');
   String get unitPrice => _t('ราคา (บาท)', 'Price (THB)');
-  String get pickExpiry => _t('เลือกวันหมดอายุ (ไม่บังคับ)', 'Pick expiry date (optional)');
+  String get pickExpiry =>
+      _t('เลือกวันหมดอายุ (ไม่บังคับ)', 'Pick expiry date (optional)');
   String expiryOn(String d) => _t('หมด: $d', 'Exp: $d');
   String expireShort(String d) => _t('หมด $d', 'Exp $d');
   String overdueDays(int d) => _t('เลยมา $d วัน', '$d days overdue');
 
   // ---------- notifications ----------
-  String get notiExpiringTitle =>
-      _t('ของใกล้หมดอายุ', 'Items expiring soon');
+  String get notiExpiringTitle => _t('ของใกล้หมดอายุ', 'Items expiring soon');
   String notiExpiringBody(String name, int days) {
     if (days == 0) return _t('$name จะหมดอายุวันนี้', '$name expires today');
     if (days == 1) {
       return _t('$name จะหมดอายุพรุ่งนี้', '$name expires tomorrow');
     }
-    return _t('$name จะหมดอายุในอีก $days วัน',
-        '$name expires in $days days');
+    return _t('$name จะหมดอายุในอีก $days วัน', '$name expires in $days days');
   }
 
   String notiExpiredBody(String name) =>
       _t('$name หมดอายุแล้ว', '$name has expired');
 
   // recurring (re-buy) variants — a decision nudge, not an expiry warning
-  String get notiRecurringTitle => _t('ของซื้อประจำใกล้ครบรอบ', 'Time to re-buy?');
+  String get notiRecurringTitle =>
+      _t('ของซื้อประจำใกล้ครบรอบ', 'Time to re-buy?');
   String notiRecurringBody(String name, int days) {
     if (days <= 0) {
       return _t('$name น่าจะใช้หมดแล้ว — จะซื้ออีกไหม?',
@@ -318,7 +322,6 @@ class AppStrings {
   String get notifYesterday => _t('เมื่อวาน', 'Yesterday');
   String notifReceivedAt(String time) => _t('แจ้งเมื่อ $time', 'at $time');
 
-
   // ---------- item fields (household item) ----------
   String get itemsTitle => _t('ของใช้', 'Items');
   String get itemsMonthSubtitle =>
@@ -329,7 +332,8 @@ class AppStrings {
       'ของที่ซื้อเดือนนี้ หรือยังใช้ไม่หมดจากเดือนก่อน จะแสดงที่นี่',
       'Items bought this month, or still in use from before, appear here');
   String get searchItems => _t('ค้นหาสินค้า...', 'Search items...');
-  String get noMatchingItems => _t('ไม่พบรายการที่ค้นหา', 'No matching items found');
+  String get noMatchingItems =>
+      _t('ไม่พบรายการที่ค้นหา', 'No matching items found');
   String get noMatchingItemsHint =>
       _t('ลองเปลี่ยนคำค้นหาหรือหมวดหมู่', 'Try a different search or category');
   String get clearFilters => _t('ล้างตัวกรอง', 'Clear filters');
@@ -338,26 +342,26 @@ class AppStrings {
   String get sizeLabel => _t('ขนาด', 'Size');
   String get unitFieldLabel => _t('หน่วย', 'Unit');
   String get unitLabelField => _t('หน่วยนับ', 'Count unit');
-    String get noUnitCount => _t('ไม่ระบุ', 'None');
-    String get unitCountPiece => _t('ชิ้น', 'Piece');
-    String get unitCountBottle => _t('ขวด', 'Bottle');
-    String get unitCountCan => _t('กระป๋อง', 'Can');
-    String get unitCountBox => _t('กล่อง', 'Box');
-    String get unitCountPack => _t('แพ็ค', 'Pack');
-    String get unitCountBag => _t('ถุง', 'Bag');
-    String get unitCountRoll => _t('ม้วน', 'Roll');
-    String get unitCountTube => _t('หลอด', 'Tube');
-    String get unitCountSheet => _t('แผ่น', 'Sheet');
-    String get unitCountPair => _t('คู่', 'Pair');
-    String get unitCountJar => _t('กระปุก', 'Jar');
-    String get unitCountPacket => _t('ซอง', 'Packet');
+  String get noUnitCount => _t('ไม่ระบุ', 'None');
+  String get unitCountPiece => _t('ชิ้น', 'Piece');
+  String get unitCountBottle => _t('ขวด', 'Bottle');
+  String get unitCountCan => _t('กระป๋อง', 'Can');
+  String get unitCountBox => _t('กล่อง', 'Box');
+  String get unitCountPack => _t('แพ็ค', 'Pack');
+  String get unitCountBag => _t('ถุง', 'Bag');
+  String get unitCountRoll => _t('ม้วน', 'Roll');
+  String get unitCountTube => _t('หลอด', 'Tube');
+  String get unitCountSheet => _t('แผ่น', 'Sheet');
+  String get unitCountPair => _t('คู่', 'Pair');
+  String get unitCountJar => _t('กระปุก', 'Jar');
+  String get unitCountPacket => _t('ซอง', 'Packet');
   String get storeLabel => _t('ร้านค้าที่ซื้อ', 'Store');
   String get purchaseDateLabel => _t('วันที่ซื้อ', 'Purchase date');
   String get buyerLabel => _t('ผู้ซื้อ', 'Buyer');
   String get expiryLabel => _t('วันหมดอายุ', 'Expiry date');
-  String get recurringLabel => _t('ซื้อประจำ (แจ้งเตือน)', 'Recurring (notify)');
-  String get recurringHint => _t(
-      'เตือนให้ตัดสินใจซื้อซ้ำเมื่อใกล้ครบรอบการใช้',
+  String get recurringLabel =>
+      _t('ซื้อประจำ (แจ้งเตือน)', 'Recurring (notify)');
+  String get recurringHint => _t('เตือนให้ตัดสินใจซื้อซ้ำเมื่อใกล้ครบรอบการใช้',
       'Reminds you to re-buy when the usage cycle is almost up');
   String get recurringDaysLabel =>
       _t('ใช้หมดภายในกี่วัน', 'Used up within (days)');
@@ -401,7 +405,6 @@ class AppStrings {
     }
   }
 
-
   // ---------- expiring soon ----------
   String get notifications => _t('แจ้งเตือน', 'Alerts');
   String get expiringTitle => _t('ของใกล้หมดอายุ', 'Expiring soon');
@@ -413,7 +416,8 @@ class AppStrings {
   String get statusShouldBuy => _t('ควรซื้อ', 'Buy soon');
   String get statusOut => _t('หมดแล้ว', 'Out');
   String noExpiringHint(int days) => _t(
-      'ไม่มีรายการที่จะหมดอายุภายใน $days วัน 🎉', 'No items expiring within $days days 🎉');
+      'ไม่มีรายการที่จะหมดอายุภายใน $days วัน 🎉',
+      'No items expiring within $days days 🎉');
   String withinDays(int d) => _t('≤ $d วัน', '≤ $d days');
   String daysLeft(int d) => _t('อีก $d วัน', '$d days left');
   String expiryWithQty(String d, int qty) =>
@@ -437,17 +441,19 @@ class AppStrings {
   String get setBudget => _t('ตั้งงบประมาณ', 'Set budget');
   String get budgetField => _t('งบประมาณ (บาท)', 'Budget (THB)');
   String get spendByMonth => _t('ค่าใช้จ่ายรายเดือน', 'Spend by month');
-  String get spendByCategory => _t('ค่าใช้จ่ายตามหมวดหมู่', 'Spend by category');
+  String get spendByCategory =>
+      _t('ค่าใช้จ่ายตามหมวดหมู่', 'Spend by category');
   String get noBudgetData =>
       _t('ยังไม่มีข้อมูลค่าใช้จ่าย', 'No spending data yet');
-  String ofBudgetUsed(String pct) => _t('ใช้ไป $pct% ของงบ', '$pct% of budget used');
+  String ofBudgetUsed(String pct) =>
+      _t('ใช้ไป $pct% ของงบ', '$pct% of budget used');
   String get save2 => _t('บันทึก', 'Save');
 
   // ---------- to-buy (shopping checklist) ----------
   String get toBuyTitle => _t('ต้องซื้อ', 'To buy');
   String get toBuyEmpty => _t('ไม่มีของที่ต้องซื้อ 🎉', 'Nothing to buy 🎉');
-  String get toBuyEmptyHint => _t(
-      'ของใช้ทุกชิ้นยังมีเพียงพอ', 'All your items are well stocked');
+  String get toBuyEmptyHint =>
+      _t('ของใช้ทุกชิ้นยังมีเพียงพอ', 'All your items are well stocked');
   String get toBuyOutSection => _t('หมดแล้ว', 'Out of stock');
   String get toBuyLowSection => _t('ใกล้หมด', 'Running low');
   String get buyButton => _t('ซื้อ', 'Buy');
@@ -475,9 +481,9 @@ class AppStrings {
 
   // ---------- settings ----------
   String get settings => _t('ตั้งค่า', 'Settings');
-    String get logoutConfirmTitle => _t('ออกจากระบบ?', 'Log out?');
-    String get logoutConfirmMessage => _t(
-            'คุณต้องการออกจากระบบใช่ไหม', 'Are you sure you want to log out?');
+  String get logoutConfirmTitle => _t('ออกจากระบบ?', 'Log out?');
+  String get logoutConfirmMessage =>
+      _t('คุณต้องการออกจากระบบใช่ไหม', 'Are you sure you want to log out?');
   String get theme => _t('ธีม', 'Theme');
   String get themeLight => _t('สว่าง', 'Light');
   String get themeDark => _t('มืด', 'Dark');
@@ -489,7 +495,7 @@ class AppStrings {
   String get navItems => _t('ของใช้', 'Items');
   String get navToBuy => _t('ต้องซื้อ', 'To buy');
   String get navBudget => _t('งบประมาณ', 'Budget');
-    String get navMenu => _t('เมนู', 'Menu');
+  String get navMenu => _t('เมนู', 'Menu');
 
   // ---------- home dashboard ----------
   String greeting(String name) => name.isEmpty
@@ -521,8 +527,8 @@ class AppStrings {
   String get productMasterTitle => _t('คลังสินค้า', 'Product catalogue');
   String get searchProducts => _t('ค้นหาสินค้า...', 'Search products...');
   String get noProductsYet => _t('ยังไม่มีสินค้า', 'No products yet');
-  String get noProductsYetHint => _t(
-      'กดปุ่ม + เพื่อเพิ่มสินค้าชิ้นแรก', 'Tap + to add your first product');
+  String get noProductsYetHint =>
+      _t('กดปุ่ม + เพื่อเพิ่มสินค้าชิ้นแรก', 'Tap + to add your first product');
   String get noMatchingProducts =>
       _t('ไม่พบสินค้าที่ค้นหา', 'No matching products');
   String get recurringBadge => _t('ซื้อประจำ', 'Recurring');
@@ -537,8 +543,8 @@ class AppStrings {
       _t('เพิ่มเข้าของใช้อย่างไร?', 'How do you want to add?');
   String get addNewProductOption =>
       _t('สร้างสินค้าใหม่', 'Create a new product');
-  String get addNewProductOptionHint => _t(
-      'เพิ่มสินค้าที่ยังไม่มีในคลัง', 'Add a product not in your catalogue yet');
+  String get addNewProductOptionHint => _t('เพิ่มสินค้าที่ยังไม่มีในคลัง',
+      'Add a product not in your catalogue yet');
   String get recordPurchaseOption =>
       _t('บันทึกการซื้อของที่มีอยู่', 'Record a purchase');
   String get recordPurchaseOptionHint => _t(
@@ -574,15 +580,13 @@ class AppStrings {
 
   // add product screen
   String get addProductTitle => _t('เพิ่มสินค้า', 'Add product');
-  String get productInfoSection =>
-      _t('ข้อมูลสินค้า', 'Product information');
+  String get productInfoSection => _t('ข้อมูลสินค้า', 'Product information');
   String get firstPurchaseSection =>
       _t('การซื้อครั้งแรก (ไม่บังคับ)', 'First purchase (optional)');
   String get firstPurchaseHint => _t(
       'บันทึกการซื้อครั้งแรกไปพร้อมกัน เว้นว่างไว้ได้ถ้ายังไม่ได้ซื้อ',
       'Record the first purchase too. Leave blank if not bought yet.');
-  String get enterProductName =>
-      _t('กรอกชื่อสินค้า', 'Enter the product name');
+  String get enterProductName => _t('กรอกชื่อสินค้า', 'Enter the product name');
   String get productSaved => _t('เพิ่มสินค้าแล้ว', 'Product added');
   String get unitCountLabel => _t('หน่วยนับ', 'Count unit');
 
@@ -650,7 +654,8 @@ class AppStrings {
     'WRONG_OLD_PASSWORD': 'Current password is incorrect',
     'INVALID_VERIFY_TOKEN': 'Verification link is invalid or expired',
     'INVALID_RESET_TOKEN': 'Reset link is invalid or expired',
-    'PENDING_NOT_FOUND': 'No pending registration for this email, please sign up again',
+    'PENDING_NOT_FOUND':
+        'No pending registration for this email, please sign up again',
     'INVALID_OTP': 'The OTP code is incorrect',
     'OTP_EXPIRED': 'The OTP code has expired, request a new one',
     'TOO_MANY_OTP_ATTEMPTS': 'Too many incorrect attempts, request a new code',
