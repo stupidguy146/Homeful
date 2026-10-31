@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID, randomBytes, randomInt } from 'crypto';
 import {
@@ -40,6 +40,13 @@ import {
 } from '../dto/commands';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const JWT_TTL_RE =
+  /^\d+(?:\.\d+)?(?:\s?(?:years?|yrs?|y|weeks?|w|days?|d|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s|milliseconds?|msecs?|ms))?$/i;
+type JwtTtl = Extract<NonNullable<JwtSignOptions['expiresIn']>, string>;
+
+function isJwtTtl(value: string): value is JwtTtl {
+  return JWT_TTL_RE.test(value);
+}
 
 /**
  * Application use-cases for authentication.
@@ -50,8 +57,8 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
  */
 @Injectable()
 export class AuthUseCases {
-  private readonly accessTtl: string;
-  private readonly refreshTtl: string;
+  private readonly accessTtl: JwtTtl;
+  private readonly refreshTtl: JwtTtl;
   private readonly refreshSecret: string;
   private readonly appBaseUrl: string;
 
@@ -67,8 +74,8 @@ export class AuthUseCases {
     private readonly jwt: JwtService,
     config: ConfigService,
   ) {
-    this.accessTtl = config.get<string>('JWT_ACCESS_TTL', '15m');
-    this.refreshTtl = config.get<string>('JWT_REFRESH_TTL', '7d');
+    this.accessTtl = this.readJwtTtl(config, 'JWT_ACCESS_TTL', '15m');
+    this.refreshTtl = this.readJwtTtl(config, 'JWT_REFRESH_TTL', '7d');
     this.refreshSecret = config.get<string>(
       'JWT_REFRESH_SECRET',
       'dev_refresh_secret_change_me',
@@ -77,6 +84,18 @@ export class AuthUseCases {
       'APP_BASE_URL',
       'http://localhost:3000',
     );
+  }
+
+  private readJwtTtl(
+    config: ConfigService,
+    key: string,
+    fallback: JwtTtl,
+  ): JwtTtl {
+    const value = config.get<string>(key, fallback).trim();
+    if (!isJwtTtl(value)) {
+      throw new Error(`${key} must be a valid duration, such as 15m or 7d`);
+    }
+    return value;
   }
 
   /**

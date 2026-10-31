@@ -38,8 +38,8 @@ class NotificationService {
     if (kIsWeb || _initialized) return;
     tzdata.initializeTimeZones();
     try {
-      final name = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(name));
+      final timezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezone.identifier));
     } catch (_) {
       // fall back to UTC if the platform can't report a zone
     }
