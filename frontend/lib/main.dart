@@ -5,6 +5,7 @@ import 'screens/auth_gate.dart';
 import 'services/auth_service.dart';
 import 'services/app_lock_service.dart';
 import 'services/notification_service.dart';
+import 'i18n/app_strings.dart';
 import 'theme/app_theme.dart';
 import 'widgets/auth_scope.dart';
 import 'widgets/app_lock_scope.dart';
@@ -33,7 +34,7 @@ Future<void> main() async {
   final theme = ThemeController();
   await theme.load(); // saved theme mode
 
-  runApp(RoomShoppingApp(
+  runApp(CheckonApp(
     auth: auth,
     lock: lock,
     locale: locale,
@@ -41,12 +42,12 @@ Future<void> main() async {
   ));
 }
 
-class RoomShoppingApp extends StatelessWidget {
+class CheckonApp extends StatelessWidget {
   final AuthService auth;
   final AppLockService lock;
   final LocaleController locale;
   final ThemeController theme;
-  const RoomShoppingApp({
+  const CheckonApp({
     super.key,
     required this.auth,
     required this.lock,
@@ -70,7 +71,7 @@ class RoomShoppingApp extends StatelessWidget {
               child: AnimatedBuilder(
                 animation: Listenable.merge([locale, theme]),
                 builder: (context, _) => MaterialApp(
-                  title: 'Checkon',
+                  title: AppStrings(locale.lang).appTitle,
                   debugShowCheckedModeBanner: false,
                   theme: AppTheme.light,
                   darkTheme: AppTheme.dark,

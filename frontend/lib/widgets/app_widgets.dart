@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../theme/app_tokens.dart';
@@ -6,7 +8,7 @@ import '../theme/app_tokens.dart';
 /// REUSABLE COMPONENTS — ใช้ซ้ำได้ทุกหน้า
 /// ============================================================
 
-/// การ์ดพื้นฐาน: พื้นหลัง surface + เงานุ่ม + มุมโค้ง
+/// Shared surface card with a soft brand-tinted border and atmospheric shadow.
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -25,7 +27,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final r = radius ?? AppRadius.rLg;
+    final r = radius ?? BorderRadius.circular(AppRadius.card);
     final bg = color ?? Theme.of(context).cardTheme.color;
     final borderColor = Theme.of(context).dividerColor;
     return Material(
@@ -37,8 +39,13 @@ class AppCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: r,
-            border: Border.all(color: borderColor, width: 1),
-            boxShadow: AppShadows.sm,
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? borderColor
+                  : AppBorders.subtle,
+              width: AppBorders.defaultWidth,
+            ),
+            boxShadow: AppShadows.card,
           ),
           padding: padding,
           child: child,
@@ -55,7 +62,7 @@ class GradientHeader extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final List<Widget> stats;
-  final Gradient gradient;
+  final Gradient? gradient;
   final EdgeInsetsGeometry padding;
 
   /// Optional brand logo shown above the title (e.g. on the login/register
@@ -74,26 +81,30 @@ class GradientHeader extends StatelessWidget {
     this.leading,
     this.trailing,
     this.stats = const [],
-    this.gradient = AppGradients.brand,
+    this.gradient,
     this.logoAsset,
     this.logoHeight = 44,
     this.centerTitle,
     this.padding = const EdgeInsets.fromLTRB(
-      AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+        AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
   });
 
   @override
   Widget build(BuildContext context) {
     final centered = centerTitle ?? (leading != null);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerForeground =
+        gradient != null || isDark ? Colors.white : AppColors.brand900;
     return Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        gradient: gradient,
+        gradient:
+            gradient ?? (isDark ? AppGradients.brandDark : AppGradients.brand),
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(AppRadius.xxl),
         ),
-        boxShadow: AppShadows.brandGlow(AppColors.brand600),
+        boxShadow: AppShadows.brandGlow(AppColors.oceanBlue),
       ),
       child: SafeArea(
         bottom: false,
@@ -102,8 +113,7 @@ class GradientHeader extends StatelessWidget {
           children: [
             if (logoAsset != null) ...[
               Align(
-                alignment:
-                    centered ? Alignment.center : Alignment.centerLeft,
+                alignment: centered ? Alignment.center : Alignment.centerLeft,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
@@ -129,8 +139,7 @@ class GradientHeader extends StatelessWidget {
               child: Stack(
                 // centre the title on screens that have a back button;
                 // left-align it on entry screens (no back button)
-                alignment:
-                    centered ? Alignment.center : Alignment.centerLeft,
+                alignment: centered ? Alignment.center : Alignment.centerLeft,
                 children: [
                   if (leading != null)
                     Align(alignment: Alignment.centerLeft, child: leading!),
@@ -152,25 +161,24 @@ class GradientHeader extends StatelessWidget {
                           Text(
                             subtitle!,
                             style: AppType.label.copyWith(
-                              color: Colors.white.withValues(alpha: 0.85),
+                              color: headerForeground.withValues(alpha: 0.82),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            textAlign: centered
-                                ? TextAlign.center
-                                : TextAlign.start,
+                            textAlign:
+                                centered ? TextAlign.center : TextAlign.start,
                           ),
                           const SizedBox(height: AppSpacing.xs),
                         ],
                         Text(
                           title,
-                          style: AppType.headlineMedium
-                              .copyWith(color: Colors.white),
+                          style: AppType.headlineMedium.copyWith(
+                            color: headerForeground,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          textAlign: centered
-                              ? TextAlign.center
-                              : TextAlign.start,
+                          textAlign:
+                              centered ? TextAlign.center : TextAlign.start,
                         ),
                       ],
                     ),
@@ -205,15 +213,35 @@ class HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.18),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ClipRRect(
       borderRadius: AppRadius.rMd,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.rMd,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Icon(icon, color: Colors.white, size: 22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppGlass.blurSigma,
+          sigmaY: AppGlass.blurSigma,
+        ),
+        child: Material(
+          color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.rMd,
+            side: BorderSide(
+              color: Colors.white.withValues(alpha: AppGlass.borderOpacity),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: AppRadius.rMd,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Icon(
+                icon,
+                color: isDark ? Colors.white : AppColors.brand800,
+                size: 22,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -237,12 +265,14 @@ class StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = onGradient ? Colors.white : AppColors.neutral900;
-    final mutedFg = onGradient
-        ? Colors.white.withValues(alpha: 0.8)
-        : AppColors.neutral500;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = onGradient
+        ? (isDark ? Colors.white : AppColors.brand900)
+        : AppColors.neutral900;
+    final mutedFg =
+        onGradient ? fg.withValues(alpha: 0.8) : AppColors.neutral500;
     final bg = onGradient
-        ? Colors.white.withValues(alpha: 0.18)
+        ? Colors.white.withValues(alpha: isDark ? 0.18 : 0.4)
         : Theme.of(context).cardTheme.color;
 
     return Container(
@@ -276,7 +306,8 @@ class AppPill extends StatelessWidget {
   final Color color;
   final IconData? icon;
 
-  const AppPill({super.key, required this.text, required this.color, this.icon});
+  const AppPill(
+      {super.key, required this.text, required this.color, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -296,8 +327,8 @@ class AppPill extends StatelessWidget {
           ],
           Text(
             text,
-            style: AppType.caption.copyWith(
-                color: color, fontWeight: FontWeight.w700),
+            style: AppType.caption
+                .copyWith(color: color, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -355,10 +386,12 @@ class EmptyState extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: AppColors.brand500.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
+                gradient: AppGradients.card,
+                borderRadius: AppRadius.rXl,
+                border: Border.all(color: AppBorders.subtle),
+                boxShadow: AppShadows.glass,
               ),
-              child: Icon(icon, size: 40, color: AppColors.brand500),
+              child: Icon(icon, size: 40, color: AppColors.brand600),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(title,
@@ -415,7 +448,7 @@ class LoadingView extends StatelessWidget {
   }
 }
 
-/// Status chip ตาม homeful — pill สี tint ตาม 4 สถานะ (ปกติ/ใกล้หมด/ควรซื้อ/หมดแล้ว)
+/// Checkon status chip using tinted pills for the four stock states.
 class StatusChip extends StatelessWidget {
   final StockStatus status;
   final String label;
@@ -430,8 +463,9 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = AppStatus.fg(status);
-    final bg = AppStatus.bg(status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = AppStatus.fg(status, dark: isDark);
+    final bg = AppStatus.bg(status, dark: isDark);
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md, vertical: AppSpacing.xs),
@@ -468,8 +502,7 @@ class Shimmer extends StatefulWidget {
   State<Shimmer> createState() => _ShimmerState();
 }
 
-class _ShimmerState extends State<Shimmer>
-    with SingleTickerProviderStateMixin {
+class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
   late final AnimationController _c;
 
   @override
@@ -661,8 +694,11 @@ class MonthNavigator extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        arrow(Icons.chevron_left_rounded, canPrev,
-            () => onChanged(DateTime(month.year, month.month - 1)), prevTooltip),
+        arrow(
+            Icons.chevron_left_rounded,
+            canPrev,
+            () => onChanged(DateTime(month.year, month.month - 1)),
+            prevTooltip),
         Expanded(
           child: _MonthLabelButton(
             label: DateFormat('MMMM yyyy', locale).format(month),
@@ -680,8 +716,11 @@ class MonthNavigator extends StatelessWidget {
             },
           ),
         ),
-        arrow(Icons.chevron_right_rounded, canNext,
-            () => onChanged(DateTime(month.year, month.month + 1)), nextTooltip),
+        arrow(
+            Icons.chevron_right_rounded,
+            canNext,
+            () => onChanged(DateTime(month.year, month.month + 1)),
+            nextTooltip),
       ],
     );
   }
@@ -800,16 +839,12 @@ class _MonthYearPickerDialogState extends State<_MonthYearPickerDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  onPressed: canPrevYear
-                      ? () => setState(() => _year--)
-                      : null,
+                  onPressed: canPrevYear ? () => setState(() => _year--) : null,
                   icon: const Icon(Icons.chevron_left_rounded),
                 ),
                 Text('$_year', style: AppType.titleLarge),
                 IconButton(
-                  onPressed: canNextYear
-                      ? () => setState(() => _year++)
-                      : null,
+                  onPressed: canNextYear ? () => setState(() => _year++) : null,
                   icon: const Icon(Icons.chevron_right_rounded),
                 ),
               ],
@@ -880,8 +915,7 @@ class _MonthCell extends StatelessWidget {
               color: selected ? AppColors.brand500 : AppColors.neutral200,
             ),
           ),
-          child: Text(label,
-              style: AppType.titleMedium.copyWith(color: fg)),
+          child: Text(label, style: AppType.titleMedium.copyWith(color: fg)),
         ),
       ),
     );

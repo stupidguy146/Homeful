@@ -1,4 +1,4 @@
-# Design Specification — Homeful
+# Design Specification — Checkon (เช็คก่อน)
 
 ขั้นตอน **Design** ของ SDLC ครอบคลุม architecture, data model, API contract และ OOP design
 
@@ -6,7 +6,7 @@
 
 ```
                        ┌─────────────────────┐
-     Flutter (homeful)─┤    api-gateway      │  (REST, port 3000)
+     Flutter (Checkon)─┤    api-gateway      │  (REST, port 3000)
                        │  - routing/proxy     │
                        │  - verify JWT        │
                        └──────────┬──────────┘

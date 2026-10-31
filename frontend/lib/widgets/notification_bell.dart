@@ -17,8 +17,10 @@ class NotificationBell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = isDark ? Colors.white : AppColors.brand800;
     return Material(
-      color: Colors.white.withValues(alpha: 0.18),
+      color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
       borderRadius: AppRadius.rMd,
       child: InkWell(
         borderRadius: AppRadius.rMd,
@@ -34,8 +36,7 @@ class NotificationBell extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              const Icon(Icons.notifications_rounded,
-                  color: Colors.white, size: 22),
+              Icon(Icons.notifications_rounded, color: foreground, size: 22),
               if (count > 0)
                 Positioned(
                   right: -4,

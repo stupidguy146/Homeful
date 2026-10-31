@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:room_shopping_app/validators/password_policy.dart';
+import 'package:checkon/validators/password_policy.dart';
 
 void main() {
   group('PasswordPolicy.satisfiedRules', () {

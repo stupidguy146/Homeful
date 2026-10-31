@@ -8,7 +8,7 @@ class AppStrings {
   String _t(String th, String en) => _th ? th : en;
 
   // ---------- generic ----------
-  String get appTitle => 'Checkon';
+  String get appTitle => _t('เช็คก่อน', 'Checkon');
   String get appTagline => _t('จัดการของใช้ในบ้าน ให้ชีวิตง่ายขึ้น', 'Home Consumable Tracker');
   String get save => _t('บันทึก', 'Save');
   String get cancel => _t('ยกเลิก', 'Cancel');
@@ -35,7 +35,8 @@ class AppStrings {
   // ---------- auth: register ----------
   String get createAccount => _t('สร้างบัญชีใหม่', 'Create account');
   String get registerSubtitle => _t(
-      'เริ่มจัดการรายการซื้อของเข้าห้องของคุณ', 'Start managing your room shopping');
+      'เริ่มจัดการรายการซื้อของใช้ในบ้านของคุณ',
+      'Start managing your household shopping list');
   String get displayName => _t('ชื่อที่แสดง', 'Display name');
   String get enterDisplayName => _t('กรอกชื่อที่แสดง', 'Enter a display name');
   String get firstName => _t('ชื่อจริง', 'First name');
@@ -221,6 +222,8 @@ class AppStrings {
       'ใช้ได้เฉพาะตัวอักษรและเว้นวรรค', 'Use letters and spaces only');
   String get decimalNumberOnly => _t(
       'กรอกเป็นตัวเลขทศนิยมเท่านั้น', 'Enter a decimal number only');
+  String get priceRequired =>
+      _t('กรอกราคาเป็นตัวเลข ไม่เกิน 2 ตำแหน่งทศนิยม', 'Enter a price with up to 2 decimal places');
   String get positiveIntegerOnly => _t(
       'กรอกเป็นจำนวนเต็มที่มากกว่า 0', 'Enter a whole number greater than 0');
   String get priceFormat => _t(
@@ -448,6 +451,12 @@ class AppStrings {
   String get toBuyOutSection => _t('หมดแล้ว', 'Out of stock');
   String get toBuyLowSection => _t('ใกล้หมด', 'Running low');
   String get buyButton => _t('ซื้อ', 'Buy');
+  String selectedItems(int count) =>
+      _t('เลือกแล้ว $count รายการ', '$count selected');
+  String buySelected(int count) =>
+      _t('ซื้อรายการที่เลือก ($count)', 'Buy selected ($count)');
+  String purchaseBatchSaved(int count) =>
+      _t('บันทึกการซื้อแล้ว $count รายการ', 'Recorded $count purchases');
   String get estimatedTotal => _t('ยอดรวมโดยประมาณ', 'Estimated total');
   String get checkout => _t('ส่งซื้อ / ซื้อแล้ว', 'Mark as bought');
   String checkoutDone(int n) =>

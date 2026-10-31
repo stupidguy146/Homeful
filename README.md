@@ -1,4 +1,4 @@
-# Homeful — ตัวช่วยจัดการของใช้ในบ้าน
+# Checkon (เช็คก่อน) — ตัวช่วยจัดการของใช้ในบ้าน
 
 ระบบติดตามของใช้ในบ้าน: บันทึกสินค้า (ชื่อ จำนวน ราคา ขนาด หมวดหมู่ วันหมดอายุ ร้านค้า ผู้ซื้อ รูปภาพ),
 สรุปค่าใช้จ่าย/งบประมาณ, แจ้งเตือนของใกล้หมด, สแกนบาร์โค้ดเติมข้อมูลอัตโนมัติ
@@ -10,7 +10,7 @@
 ## สถาปัตยกรรม
 
 ```
-Flutter (homeful) ──REST──► api-gateway (3000)
+Flutter (Checkon) ──REST──► api-gateway (3000)
                                ├──► auth-service      (3003) ──► auth_db      (5435)
                                │        └──REST──► customer-service (provision profile)
                                ├──► customer-service  (3004) ──► customer_db  (5436)
@@ -28,7 +28,7 @@ Flutter (homeful) ──REST──► api-gateway (3000)
 ## โครงสร้างโปรเจกต์
 
 ```
-room-shopping-list/
+checkon/
 ├─ docker-compose.yml           # 4 DB + 5 services
 ├─ docs/
 │  ├─ 01-requirements.md         # SDLC: requirements
@@ -61,7 +61,7 @@ room-shopping-list/
 
 ### ตัวเลือก A — รันทั้งหมดด้วย Docker Compose (แนะนำ)
 ```bash
-cd room-shopping-list
+cd checkon
 docker compose up --build
 ```
 จะได้:
@@ -97,7 +97,7 @@ flutter run -d chrome
 
 ---
 
-## ฟีเจอร์ฝั่ง Frontend (Flutter "homeful")
+## ฟีเจอร์ฝั่ง Frontend (Flutter "Checkon")
 - **สมัครสมาชิก**: เลือกคำนำหน้า (นาย/นาง/นางสาว/ไม่ระบุ) → กรอกข้อมูล → ยืนยัน **OTP 6 หลักทางอีเมล** → ตั้งรหัสผ่าน (มี checklist เงื่อนไข + แถบวัดความแข็งแรง)
 - **ล็อกแอป**: ตั้ง **PIN 6 หลัก** + ปลดล็อกด้วย **ลายนิ้วมือ/สแกนหน้า** (บนมือถือ; เว็บใช้ PIN) และเปลี่ยน PIN ได้จากเมนู
 - **สินค้า**: เพิ่มได้ 2 แบบ — **สแกนบาร์โค้ด** (เติมชื่อ/ยี่ห้อ/ขนาด/หมวด/ร้าน/รูปอัตโนมัติ) หรือ **กรอกเอง**; วันที่ซื้อ prefill เป็นวันนี้, ผู้ซื้อ prefill เป็นชื่อผู้ใช้

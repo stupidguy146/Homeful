@@ -105,8 +105,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 if (data == null || data.rows.isEmpty) {
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 }
-                final unread =
-                    data.rows.where((r) => !r.event.read).length;
+                final unread = data.rows.where((r) => !r.event.read).length;
                 return SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
@@ -230,8 +229,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           );
                           _reload();
                         },
-                        onMarkRead:
-                            isRead ? null : () => _markRead(it.itemId),
+                        onMarkRead: isRead ? null : () => _markRead(it.itemId),
                       );
                     },
                   ),
@@ -433,11 +431,12 @@ class _NotificationCard extends StatelessWidget {
                         item.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight:
-                                  read ? FontWeight.w500 : FontWeight.w700,
-                              color: read ? AppColors.neutral600 : null,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight:
+                                      read ? FontWeight.w500 : FontWeight.w700,
+                                  color: read ? AppColors.neutral600 : null,
+                                ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -530,8 +529,8 @@ class _ExpiryHighlight extends StatelessWidget {
         item.expiryDate != null ? df.format(item.expiryDate!) : null;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 6),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: AppRadius.rMd,
@@ -592,7 +591,8 @@ class _ReadStamp extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_rounded, size: 12, color: AppColors.neutral500),
+          const Icon(Icons.check_rounded,
+              size: 12, color: AppColors.neutral500),
           const SizedBox(width: 3),
           Text(label,
               style: AppType.caption.copyWith(color: AppColors.neutral500)),
@@ -629,15 +629,20 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white.withValues(alpha: 0.18),
+      color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
       borderRadius: AppRadius.rMd,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.rMd,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(
+            icon,
+            color: isDark ? Colors.white : AppColors.brand800,
+            size: 22,
+          ),
         ),
       ),
     );

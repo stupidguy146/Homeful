@@ -1,6 +1,6 @@
-# room_shopping_app
+# Checkon (เช็คก่อน)
 
-A new Flutter project.
+Flutter client for the Checkon household inventory app.
 
 ## Getting Started
 

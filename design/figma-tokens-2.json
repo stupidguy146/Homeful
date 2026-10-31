@@ -3,34 +3,64 @@
         "color": {
             "primary": {
                 "blue": {
-                    "value": "#477FA8",
+                    "value": "#0878B5",
                     "type": "color",
-                    "description": "Primary Blue - สีหลักของแอปและปุ่มหลัก"
+                    "description": "Logo-derived ocean blue with accessible contrast for primary actions"
                 },
                 "softBlue": {
-                    "value": "#EAF3F8",
+                    "value": "#DDF3FF",
                     "type": "color",
-                    "description": "Soft Blue - สีพื้นหลังการ์ดหรือส่วนที่ต้องการเน้นแบบอ่อน"
+                    "description": "Logo-derived soft sky blue for selected and supporting surfaces"
                 },
                 "warmWhite": {
-                    "value": "#FAF9F6",
+                    "value": "#F1FAFF",
                     "type": "color",
-                    "description": "Warm White - สีพื้นหลังหลักของแอป"
+                    "description": "Cloud-white primary background"
+                }
+            },
+            "aero": {
+                "skyBlue": {
+                    "value": "#62C3F5",
+                    "type": "color"
+                },
+                "oceanBlue": {
+                    "value": "#0878B5",
+                    "type": "color"
+                },
+                "aqua": {
+                    "value": "#35C4D8",
+                    "type": "color"
+                },
+                "cyan": {
+                    "value": "#12AFC7",
+                    "type": "color"
+                },
+                "freshGreen": {
+                    "value": "#35A96D",
+                    "type": "color"
+                },
+                "mint": {
+                    "value": "#BDEFD8",
+                    "type": "color"
+                },
+                "iceBlue": {
+                    "value": "#E5F5FF",
+                    "type": "color"
                 }
             },
             "secondary": {
                 "sageGreen": {
-                    "value": "#DCE9DF",
+                    "value": "#DDF4E6",
                     "type": "color",
                     "description": "Sage Green - สถานะปกติ (Normal)"
                 },
                 "amber": {
-                    "value": "#F7E7C6",
+                    "value": "#FFF0C2",
                     "type": "color",
                     "description": "Amber - สถานะใกล้หมด / เตรียมซื้อ (Warning)"
                 },
                 "coral": {
-                    "value": "#D98278",
+                    "value": "#B42318",
                     "type": "color",
                     "description": "Coral - สถานะหมดแล้ว / ควรซื้อ (Alert)"
                 }
@@ -41,25 +71,62 @@
                     "type": "color"
                 },
                 "textMain": {
-                    "value": "#2C3E50",
+                    "value": "#102D3F",
                     "type": "color",
                     "description": "สีข้อความหลัก"
                 },
                 "textMuted": {
-                    "value": "#7F8C8D",
+                    "value": "#476171",
                     "type": "color",
                     "description": "สีข้อความรอง / Placeholder"
                 },
                 "border": {
-                    "value": "#E2E8F0",
+                    "value": "#DCECF5",
                     "type": "color"
+                }
+            },
+            "surface": {
+                "background": {
+                    "value": "#F1FAFF",
+                    "type": "color"
+                },
+                "secondary": {
+                    "value": "#EAF7FE",
+                    "type": "color"
+                },
+                "elevated": {
+                    "value": "#FFFFFF",
+                    "type": "color"
+                },
+                "darkBackground": {
+                    "value": "#061827",
+                    "type": "color"
+                },
+                "darkElevated": {
+                    "value": "#0B2639",
+                    "type": "color"
+                }
+            },
+            "gradient": {
+                "brand": {
+                    "value": "linear-gradient(135deg, #62C3F5 0%, #8BD8F8 55%, #DDF3FF 100%)",
+                    "type": "gradient"
+                },
+                "sky": {
+                    "value": "linear-gradient(135deg, #62C3F5 0%, #168FDB 55%, #0878B5 100%)",
+                    "type": "gradient"
+                },
+                "aqua": {
+                    "value": "linear-gradient(135deg, #35C4D8 0%, #168FDB 100%)",
+                    "type": "gradient"
                 }
             }
         },
         "fontFamilies": {
             "main": {
-                "value": "Noto Sans Thai",
-                "type": "fontFamilies"
+                "value": "Anuphan",
+                "type": "fontFamilies",
+                "description": "Friendly, readable Thai and English UI font; bundled with the Flutter app"
             }
         },
         "lineHeights": {
@@ -89,14 +156,26 @@
                 "value": "500",
                 "type": "fontWeights"
             },
+            "semibold": {
+                "value": "600",
+                "type": "fontWeights"
+            },
             "bold": {
                 "value": "700",
                 "type": "fontWeights"
             }
         },
         "fontSize": {
+            "smallCaption": {
+                "value": "11px",
+                "type": "fontSizes"
+            },
             "caption": {
                 "value": "12px",
+                "type": "fontSizes"
+            },
+            "footnote": {
+                "value": "13px",
                 "type": "fontSizes"
             },
             "body2": {
@@ -116,11 +195,19 @@
                 "type": "fontSizes"
             },
             "header": {
-                "value": "28px",
+                "value": "34px",
+                "type": "fontSizes"
+            },
+            "largeDisplay": {
+                "value": "40px",
                 "type": "fontSizes"
             }
         },
         "borderRadius": {
+            "xs": {
+                "value": "4px",
+                "type": "borderRadius"
+            },
             "sm": {
                 "value": "8px",
                 "type": "borderRadius"
@@ -130,7 +217,31 @@
                 "type": "borderRadius"
             },
             "lg": {
+                "value": "16px",
+                "type": "borderRadius"
+            },
+            "xl": {
                 "value": "20px",
+                "type": "borderRadius"
+            },
+            "xxl": {
+                "value": "28px",
+                "type": "borderRadius"
+            },
+            "button": {
+                "value": "14px",
+                "type": "borderRadius"
+            },
+            "card": {
+                "value": "20px",
+                "type": "borderRadius"
+            },
+            "input": {
+                "value": "14px",
+                "type": "borderRadius"
+            },
+            "modal": {
+                "value": "28px",
                 "type": "borderRadius"
             },
             "pill": {
@@ -139,6 +250,10 @@
             }
         },
         "spacing": {
+            "xxs": {
+                "value": "2px",
+                "type": "spacing"
+            },
             "xs": {
                 "value": "4px",
                 "type": "spacing"
@@ -148,17 +263,121 @@
                 "type": "spacing"
             },
             "md": {
-                "value": "16px",
+                "value": "12px",
                 "type": "spacing"
             },
             "lg": {
-                "value": "24px",
+                "value": "16px",
+                "type": "spacing"
+            },
+            "xlg": {
+                "value": "20px",
                 "type": "spacing"
             },
             "xl": {
+                "value": "24px",
+                "type": "spacing"
+            },
+            "xxl": {
                 "value": "32px",
                 "type": "spacing"
+            },
+            "xxxl": {
+                "value": "48px",
+                "type": "spacing"
+            },
+            "xxxxl": {
+                "value": "64px",
+                "type": "spacing"
             }
+        }
+    },
+    "glass": {
+        "surfaceOpacity": {
+            "value": "88%",
+            "type": "opacity"
+        },
+        "borderOpacity": {
+            "value": "72%",
+            "type": "opacity"
+        },
+        "highlightOpacity": {
+            "value": "62%",
+            "type": "opacity"
+        },
+        "blur": {
+            "value": "16px",
+            "type": "blur"
+        }
+    },
+    "border": {
+        "subtle": {
+            "value": "#DCECF5",
+            "type": "color"
+        },
+        "glass": {
+            "value": "#FFFFFFB8",
+            "type": "color"
+        },
+        "focus": {
+            "value": "{global.color.primary.blue}",
+            "type": "color"
+        },
+        "width": {
+            "value": "1px",
+            "type": "borderWidth"
+        },
+        "focusWidth": {
+            "value": "2px",
+            "type": "borderWidth"
+        }
+    },
+    "shadow": {
+        "subtle": {
+            "value": "0 3px 8px #0B385609",
+            "type": "boxShadow"
+        },
+        "card": {
+            "value": "0 7px 18px #0B38560E",
+            "type": "boxShadow"
+        },
+        "floating": {
+            "value": "0 12px 26px #0B385616",
+            "type": "boxShadow"
+        },
+        "glass": {
+            "value": "0 8px 20px #0878B514",
+            "type": "boxShadow"
+        }
+    },
+    "motion": {
+        "fast": {
+            "value": "150ms",
+            "type": "duration"
+        },
+        "normal": {
+            "value": "250ms",
+            "type": "duration"
+        },
+        "slow": {
+            "value": "400ms",
+            "type": "duration"
+        },
+        "spring": {
+            "value": "380ms",
+            "type": "duration"
+        },
+        "fade": {
+            "value": "180ms",
+            "type": "duration"
+        },
+        "scale": {
+            "value": "220ms",
+            "type": "duration"
+        },
+        "interactive": {
+            "value": "200ms",
+            "type": "duration"
         }
     },
     "ios": {
@@ -184,18 +403,18 @@
             "primary": {
                 "background": "{global.color.primary.blue}",
                 "text": "{global.color.neutral.white}",
-                "radius": "{global.borderRadius.pill}"
+                "radius": "{global.borderRadius.button}"
             },
             "secondary": {
                 "background": "{global.color.primary.softBlue}",
                 "text": "{global.color.primary.blue}",
-                "radius": "{global.borderRadius.pill}"
+                "radius": "{global.borderRadius.button}"
             }
         },
         "card": {
             "background": "{global.color.neutral.white}",
-            "radius": "{global.borderRadius.lg}",
-            "padding": "{global.spacing.md}"
+            "radius": "{global.borderRadius.card}",
+            "padding": "{global.spacing.lg}"
         }
     },
     "web": {

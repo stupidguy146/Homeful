@@ -36,7 +36,7 @@ class PasswordStrengthMeter extends StatelessWidget {
             for (var i = 0; i < 4; i++) ...[
               Expanded(
                 child: AnimatedContainer(
-                  duration: AppDurations.fast,
+                  duration: AppMotion.duration(context, AppDurations.fast),
                   height: 6,
                   decoration: BoxDecoration(
                     color: password.isEmpty
@@ -56,8 +56,7 @@ class PasswordStrengthMeter extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(s.passwordStrength,
-                  style: AppType.caption
-                      .copyWith(color: AppColors.neutral500)),
+                  style: AppType.caption.copyWith(color: AppColors.neutral500)),
               Text(label,
                   style: AppType.caption
                       .copyWith(color: color, fontWeight: FontWeight.w700)),

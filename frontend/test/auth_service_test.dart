@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:room_shopping_app/services/auth_service.dart';
+import 'package:checkon/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

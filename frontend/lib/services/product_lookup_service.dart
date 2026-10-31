@@ -87,7 +87,7 @@ class ProductLookupService {
     );
     final response = await _client.get(
       uri,
-      headers: {'User-Agent': 'homeful/1.0 (Room Shopping List)'},
+      headers: {'User-Agent': 'Checkon/1.0 (Checkon household app)'},
     );
     // 404 = product not found at this host (the API returns a JSON body with
     // status:0). Treat as "no result here" and let the caller try the next

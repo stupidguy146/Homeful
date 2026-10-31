@@ -1,4 +1,4 @@
-# Design System — Homeful
+# Design System — Checkon (เช็คก่อน)
 
 ระบบดีไซน์รวมศูนย์สำหรับแอป โดยมี **แหล่งความจริงเดียว (single source of truth)** คือ design tokens
 ที่ใช้ตรงกันทั้งในโค้ด Flutter และใน Figma
@@ -7,7 +7,7 @@
 
 ```
 design/
-├─ figma-tokens.json      # design tokens (Tokens Studio format) → import เข้า Figma
+├─ figma-tokens-2.json    # current logo-inspired tokens (Tokens Studio format) → import เข้า Figma
 └─ README.md              # ไฟล์นี้
 
 frontend/lib/
@@ -22,7 +22,10 @@ frontend/lib/
    └─ pin_pad.dart       # แป้น PIN 6 หลัก (ใช้ตอนตั้ง/ปลดล็อก)
 ```
 
-ค่าใน `app_tokens.dart` (Dart) และ `figma-tokens.json` (Figma) **ตรงกัน** —
+The app bundles the Anuphan variable font under `frontend/assets/fonts/anuphan/`.
+Its SIL Open Font License is included alongside the font as `OFL.txt`.
+
+ค่าใน `app_tokens.dart` (Dart) และ `figma-tokens-2.json` (Figma) **ตรงกัน** —
 ถ้าแก้สี/ระยะห่าง ให้แก้ทั้งสองที่เพื่อให้ดีไซน์กับโค้ดไม่หลุดกัน
 
 ---
@@ -34,14 +37,14 @@ frontend/lib/
 
 1. เปิดไฟล์ Figma → เมนู **Plugins → Tokens Studio for Figma** (ติดตั้งจาก Figma Community ถ้ายังไม่มี)
 2. ในปลั๊กอิน เลือก **Tools → Load from file / Import**
-3. เลือกไฟล์ `design/figma-tokens.json`
+3. เลือกไฟล์ `design/figma-tokens-2.json`
 4. กด **Import** — จะได้ token sets: `global`, `light`, `dark`
 5. กด **Create styles / Create variables** ในปลั๊กอินเพื่อแปลง tokens เป็น Figma Color Styles,
    Text Styles และ Effect Styles ที่ลาก-วางใช้ในดีไซน์ได้ทันที
 
 ### ทางเลือก: sync ผ่าน Git
 Tokens Studio ตั้งค่า sync กับ repo โดยตรงได้ (Settings → Sync → GitHub/GitLab)
-ชี้ไปที่ `design/figma-tokens.json` แล้วแก้ที่เดียว อัปเดตได้ทั้งโค้ดและ Figma
+ชี้ไปที่ `design/figma-tokens-2.json` แล้วแก้ที่เดียว อัปเดตได้ทั้งโค้ดและ Figma
 
 ---
 
@@ -50,7 +53,7 @@ Tokens Studio ตั้งค่า sync กับ repo โดยตรงได
 ### สี (Color)
 | กลุ่ม | ใช้ทำอะไร |
 |------|-----------|
-| `brand.50–900` | สีหลักของแบรนด์ (teal/emerald) — primary = `brand.500` `#0FA586` |
+| `brand.50–900` | สีฟ้าหลักจากโลโก้ — primary = `brand.600` `#0878B5` |
 | `accent.400–600` | สีเน้น (amber) — ใช้กับหน้าแจ้งเตือน/เงิน |
 | `semantic.*` | success / warning / danger / info |
 | `neutral.0–900` | สีเทา/พื้นหลัง/ตัวอักษร |

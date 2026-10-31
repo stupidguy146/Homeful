@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:room_shopping_app/validators/item_form_validators.dart';
+import 'package:checkon/validators/item_form_validators.dart';
 
 void main() {
   test('item name accepts Thai and English letters, digits, and spaces', () {

@@ -1,6 +1,6 @@
-# Requirements Specification — Homeful
+# Requirements Specification — Checkon (เช็คก่อน)
 
-เอกสารนี้เป็นขั้นตอน **Requirements** ของ SDLC สำหรับระบบจัดการของใช้ในบ้าน (Homeful)
+เอกสารนี้เป็นขั้นตอน **Requirements** ของ SDLC สำหรับระบบจัดการของใช้ในบ้าน (Checkon / เช็คก่อน)
 
 ## 1. ภาพรวมระบบ (Overview)
 ระบบช่วยผู้ใช้บันทึกและติดตามของใช้ในบ้าน (จำนวน ราคา ขนาด หมวดหมู่ วันหมดอายุ ร้านค้า ผู้ซื้อ รูปภาพ)

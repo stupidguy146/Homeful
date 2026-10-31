@@ -36,6 +36,7 @@ class _ExpiringSoonScreenState extends State<ExpiringSoonScreen> {
   Widget build(BuildContext context) {
     final s = context.strings;
     final df = DateFormat('d MMM yyyy', context.locale.lang);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async => _reload(),
@@ -43,7 +44,8 @@ class _ExpiringSoonScreenState extends State<ExpiringSoonScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: GradientHeader(
-                gradient: AppGradients.accent,
+                gradient:
+                    isDark ? AppGradients.accentDark : AppGradients.accent,
                 subtitle: s.notifications,
                 title: s.expiringTitle,
                 leading: _HeaderIconButton(
@@ -54,8 +56,8 @@ class _ExpiringSoonScreenState extends State<ExpiringSoonScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg,
-                    AppSpacing.lg, AppSpacing.sm),
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
                 child: Row(
                   children: [
                     for (final o in _options) ...[
@@ -98,8 +100,8 @@ class _ExpiringSoonScreenState extends State<ExpiringSoonScreen> {
                   );
                 }
                 return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
+                      AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
                   sliver: SliverList.separated(
                     itemCount: items.length,
                     separatorBuilder: (_, __) =>
@@ -128,7 +130,8 @@ class _ExpiringCard extends StatelessWidget {
     final s = context.strings;
     final d = item.daysUntilExpiry;
     final status = AppStatus.fromDays(d);
-    final color = AppStatus.fg(status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = AppStatus.fg(status, dark: isDark);
     final overdue = status == StockStatus.out;
     final statusLabel = {
       StockStatus.normal: s.statusNormal,
@@ -144,7 +147,7 @@ class _ExpiringCard extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppStatus.bg(status),
+              color: AppStatus.bg(status, dark: isDark),
               borderRadius: AppRadius.rMd,
             ),
             child: Icon(
@@ -157,8 +160,7 @@ class _ExpiringCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name,
-                    style: Theme.of(context).textTheme.titleMedium),
+                Text(item.name, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   item.expiryDate != null

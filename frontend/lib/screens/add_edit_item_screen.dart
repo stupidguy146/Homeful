@@ -142,7 +142,7 @@ class _AddChoiceTile extends StatelessWidget {
   }
 }
 
-/// Add or edit a household item (form follows the homeful mockup).
+/// Add or edit a household item using the Checkon design system.
 class AddEditItemScreen extends StatefulWidget {
   final HouseholdItem? existing;
 
@@ -844,4 +844,3 @@ class _DateField extends StatelessWidget {
     );
   }
 }
-

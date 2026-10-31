@@ -1,12 +1,12 @@
-// Basic widget smoke test for RoomShoppingApp.
+// Basic widget smoke test for CheckonApp.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:room_shopping_app/main.dart';
-import 'package:room_shopping_app/services/auth_service.dart';
-import 'package:room_shopping_app/services/app_lock_service.dart';
-import 'package:room_shopping_app/i18n/locale_controller.dart';
-import 'package:room_shopping_app/i18n/theme_controller.dart';
+import 'package:checkon/main.dart';
+import 'package:checkon/services/auth_service.dart';
+import 'package:checkon/services/app_lock_service.dart';
+import 'package:checkon/i18n/locale_controller.dart';
+import 'package:checkon/i18n/theme_controller.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +26,7 @@ void main() {
     await theme.load();
 
     await tester.pumpWidget(
-      RoomShoppingApp(auth: auth, lock: lock, locale: locale, theme: theme),
+      CheckonApp(auth: auth, lock: lock, locale: locale, theme: theme),
     );
     await tester.pumpAndSettle();
 

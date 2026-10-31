@@ -108,7 +108,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         username: _usernameCtrl.text.trim(),
         firstName: _firstNameCtrl.text.trim(),
         lastName: _lastNameCtrl.text.trim(),
-        status: _statusCtrl.text.trim().isEmpty ? null : _statusCtrl.text.trim(),
+        status:
+            _statusCtrl.text.trim().isEmpty ? null : _statusCtrl.text.trim(),
         avatarBase64: _avatarTouched ? _avatar : CustomerService.leaveAvatar,
         birthDate: _birthDate?.toIso8601String().substring(0, 10),
       );
@@ -119,8 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } on ApiError catch (e) {
       if (mounted) {
-        AppSnackBar.show(
-            messenger, s.errorForCode(e.code, fallback: e.message),
+        AppSnackBar.show(messenger, s.errorForCode(e.code, fallback: e.message),
             SnackKind.error);
       }
     } catch (e) {
@@ -179,8 +179,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         initialValue: _title,
                         decoration: InputDecoration(
                           labelText: s.title,
-                          prefixIcon:
-                              const Icon(Icons.person_outline_rounded),
+                          prefixIcon: const Icon(Icons.person_outline_rounded),
                         ),
                         items: [
                           for (final t in _titles)
@@ -191,8 +190,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ],
                         onChanged: _saving
                             ? null
-                            : (v) => setState(
-                                () => _title = v ?? 'unspecified'),
+                            : (v) =>
+                                setState(() => _title = v ?? 'unspecified'),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Row(
@@ -210,7 +209,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           Expanded(
                             child: TextField(
                               controller: _lastNameCtrl,
-                              decoration: InputDecoration(labelText: s.lastName),
+                              decoration:
+                                  InputDecoration(labelText: s.lastName),
                             ),
                           ),
                         ],
@@ -220,8 +220,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         controller: _usernameCtrl,
                         decoration: InputDecoration(
                           labelText: s.username,
-                          prefixIcon:
-                              const Icon(Icons.alternate_email_rounded),
+                          prefixIcon: const Icon(Icons.alternate_email_rounded),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -468,15 +467,20 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white.withValues(alpha: 0.18),
+      color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
       borderRadius: AppRadius.rMd,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.rMd,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(
+            icon,
+            color: isDark ? Colors.white : AppColors.brand800,
+            size: 22,
+          ),
         ),
       ),
     );

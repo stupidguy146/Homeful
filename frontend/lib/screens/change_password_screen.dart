@@ -101,8 +101,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           icon: Icon(_obscure
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined),
-                          onPressed: () =>
-                              setState(() => _obscure = !_obscure),
+                          onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
                       validator: (v) => (v == null || v.length < 8)
@@ -178,15 +177,20 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white.withValues(alpha: 0.18),
+      color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
       borderRadius: AppRadius.rMd,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.rMd,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(
+            icon,
+            color: isDark ? Colors.white : AppColors.brand800,
+            size: 22,
+          ),
         ),
       ),
     );

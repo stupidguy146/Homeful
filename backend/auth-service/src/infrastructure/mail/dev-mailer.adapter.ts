@@ -81,7 +81,7 @@ export class DevMailerAdapter implements MailerPort, OnModuleInit {
       return;
     }
     const info = await this.transporter.sendMail({
-      from: '"Room Shopping" <no-reply@roomshopping.dev>',
+      from: '"Checkon" <no-reply@example.com>',
       to,
       subject,
       text,

@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +18,7 @@ import '../i18n/locale_scope.dart';
 import 'add_edit_item_screen.dart';
 import 'item_detail_screen.dart';
 
-/// homeful home dashboard built from household items + analytics.
+/// Checkon home dashboard built from household items and analytics.
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onSeeAllItems;
   const HomeScreen({super.key, this.onSeeAllItems});
@@ -70,8 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // (7 days) and read-state stay consistent.
     final expiringIds = expiring
         .where((it) =>
-            (it.daysUntilExpiry ?? 9999) <=
-            NotificationService.thresholdDays)
+            (it.daysUntilExpiry ?? 9999) <= NotificationService.thresholdDays)
         .map((it) => it.itemId)
         .toSet();
     final events = await _store.sync(expiringIds);
@@ -111,7 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
             }
             final data = snap.data!;
             final attention = [...data.expiring]..sort((a, b) =>
-                (a.daysUntilExpiry ?? 9999).compareTo(b.daysUntilExpiry ?? 9999));
+                (a.daysUntilExpiry ?? 9999)
+                    .compareTo(b.daysUntilExpiry ?? 9999));
             final name = data.profile?.firstName ?? '';
 
             return ListView(
@@ -128,28 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _StatCard(
-                            icon: Icons.inventory_2_rounded,
-                            value: '${data.totalItems}',
-                            label: s.statAllItems,
-                            unit: s.statItemsUnit,
-                            color: AppColors.brand500,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: _StatCard(
-                            icon: Icons.error_outline_rounded,
-                            value: '${attention.length}',
-                            label: s.statLowItems,
-                            unit: s.statItemsUnit,
-                            color: AppColors.warning,
-                          ),
-                        ),
-                      ],
+                    child: _HomeSummaryCard(
+                      totalItems: '${data.totalItems}',
+                      attentionCount: '${attention.length}',
+                      itemsLabel: s.statAllItems,
+                      attentionLabel: s.statLowItems,
                     ),
                   ),
                 ),
@@ -182,8 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 else
                   ...attention.take(5).map((it) => Padding(
-                        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0,
-                            AppSpacing.lg, AppSpacing.md),
+                        padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
                         child: _AttentionCard(item: it, df: df),
                       )),
                 Padding(
@@ -198,6 +183,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_home',
+        backgroundColor: AppColors.brand100,
+        foregroundColor: AppColors.brand800,
+        elevation: 3,
+        highlightElevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.rXl,
+          side: BorderSide(
+            color: AppColors.skyBlue.withValues(alpha: 0.42),
+          ),
+        ),
         onPressed: () async {
           final created = await showAddItemFlow(context);
           if (created) _reload();
@@ -237,107 +232,289 @@ class _GreetingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
-      decoration: const BoxDecoration(
-        gradient: AppGradients.brand,
-          borderRadius:
-            BorderRadius.vertical(bottom: Radius.circular(AppRadius.xxl)),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: isDark ? AppGradients.brandDark : AppGradients.brand,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(AppRadius.xxl),
+        ),
+        boxShadow: AppShadows.brandGlow(AppColors.oceanBlue),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: AppRadius.rLg,
-                    boxShadow: AppShadows.sm,
-                  ),
-                  child: Image.asset(
-                    'assets/images/logos/checkon_logo.png',
-                    height: 56,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const Spacer(),
-                NotificationBell(
-                  count: expiringCount,
-                  onReturn: onBellReturn,
-                ),
-              ],
+      child: Stack(
+        children: [
+          Positioned(
+            right: -54,
+            top: 24,
+            child: _AeroOrb(
+              size: 190,
+              color: AppColors.skyBlue.withValues(alpha: 0.24),
             ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(greeting,
-                style: AppType.titleMedium
-                    .copyWith(color: Colors.white.withValues(alpha: 0.9))),
-            const SizedBox(height: AppSpacing.xs),
-            Text(question,
-                style: AppType.headlineMedium.copyWith(color: Colors.white)),
-          ],
+          ),
+          Positioned(
+            right: 86,
+            top: 132,
+            child: _AeroOrb(
+              size: 58,
+              color: Colors.white.withValues(alpha: 0.18),
+            ),
+          ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.lg,
+                AppSpacing.xl,
+                AppSpacing.xxl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.94),
+                          borderRadius: AppRadius.rLg,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
+                          boxShadow: AppShadows.sm,
+                        ),
+                        child: Image.asset(
+                          'assets/images/logos/checkon_logo.png',
+                          height: 38,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const Spacer(),
+                      NotificationBell(
+                        count: expiringCount,
+                        onReturn: onBellReturn,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  Text(
+                    greeting,
+                    style: AppType.titleMedium.copyWith(
+                      color: (isDark ? Colors.white : AppColors.brand900)
+                          .withValues(alpha: 0.82),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    question,
+                    style: AppType.headlineMedium.copyWith(
+                      color: isDark ? Colors.white : AppColors.brand900,
+                      height: 1.12,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeGlassCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  const _HomeGlassCard({
+    required this.child,
+    required this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final radius = BorderRadius.circular(AppRadius.card);
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppGlass.blurSigma,
+          sigmaY: AppGlass.blurSigma,
+        ),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppSurfaces.darkGlass.withValues(alpha: 0.82)
+                : Colors.white.withValues(alpha: 0.72),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [
+                      Colors.white.withValues(alpha: 0.09),
+                      Colors.white.withValues(alpha: 0.025),
+                    ]
+                  : [
+                      Colors.white.withValues(alpha: 0.48),
+                      Colors.white.withValues(alpha: 0.12),
+                    ],
+            ),
+            borderRadius: radius,
+            border: Border.all(
+              color: isDark
+                  ? AppColors.brand300.withValues(alpha: 0.24)
+                  : Colors.white.withValues(alpha: 0.88),
+              width: 1.2,
+            ),
+            boxShadow: AppShadows.glass,
+          ),
+          child: child,
         ),
       ),
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _AeroOrb extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _AeroOrb({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withValues(alpha: 0)],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeSummaryCard extends StatelessWidget {
+  final String totalItems;
+  final String attentionCount;
+  final String itemsLabel;
+  final String attentionLabel;
+
+  const _HomeSummaryCard({
+    required this.totalItems,
+    required this.attentionCount,
+    required this.itemsLabel,
+    required this.attentionLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _HomeGlassCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xl,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SummaryMetric(
+              icon: Icons.inventory_2_rounded,
+              value: totalItems,
+              label: itemsLabel,
+              color: AppColors.brand600,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 64,
+            color: Theme.of(context).dividerColor,
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          ),
+          Expanded(
+            child: _SummaryMetric(
+              icon: Icons.notifications_active_rounded,
+              value: attentionCount,
+              label: attentionLabel,
+              color: AppColors.warning,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryMetric extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
-  final String unit;
   final Color color;
-  const _StatCard({
+
+  const _SummaryMetric({
     required this.icon,
     required this.value,
     required this.label,
-    required this.unit,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: AppRadius.rMd,
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.2),
+                color.withValues(alpha: 0.07),
+              ],
             ),
-            child: Icon(icon, color: color, size: 22),
+            borderRadius: AppRadius.rMd,
           ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+          child: Icon(icon, color: color, size: 21),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: AppType.displayLarge.copyWith(color: color)),
-              const SizedBox(width: AppSpacing.xs),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(unit,
-                    style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                value,
+                style: AppType.headlineMedium.copyWith(
+                  color: color,
+                  height: 1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-          const SizedBox(height: 2),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -352,7 +529,8 @@ class _AttentionCard extends StatelessWidget {
     final s = context.strings;
     final d = item.daysUntilExpiry;
     final status = AppStatus.fromDays(d);
-    final color = AppStatus.fg(status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = AppStatus.fg(status, dark: isDark);
     final statusLabel = {
       StockStatus.normal: s.statusNormal,
       StockStatus.low: s.statusLow,
@@ -361,6 +539,10 @@ class _AttentionCard extends StatelessWidget {
     }[status]!;
 
     return AppCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
@@ -372,7 +554,7 @@ class _AttentionCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppStatus.bg(status),
+              color: AppStatus.bg(status, dark: isDark),
               borderRadius: AppRadius.rMd,
             ),
             child: Icon(Icons.inventory_2_outlined, color: color, size: 22),
@@ -382,8 +564,7 @@ class _AttentionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name,
-                    style: Theme.of(context).textTheme.titleMedium),
+                Text(item.name, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 2),
                 Text(
                   item.expiryDate != null
@@ -397,6 +578,11 @@ class _AttentionCard extends StatelessWidget {
             ),
           ),
           StatusChip(status: status, label: statusLabel),
+          const SizedBox(width: AppSpacing.xs),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ],
       ),
     );
@@ -444,50 +630,84 @@ class _BudgetCardState extends State<_BudgetCard> {
     final overBudget = spent > _budget;
     final barColor = overBudget ? AppColors.danger : AppColors.brand500;
 
-    return AppCard(
+    return _HomeGlassCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet_outlined,
-                  color: AppColors.brand500),
-              const SizedBox(width: AppSpacing.sm),
-              Text(s.monthlyBudget,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.aqua,
+                  borderRadius: AppRadius.rMd,
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  s.monthlyBudget,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 5,
+                      strokeCap: StrokeCap.round,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      valueColor: AlwaysStoppedAnimation(barColor),
+                    ),
+                    Center(
+                      child: Text(
+                        '$pct%',
+                        style: AppType.caption.copyWith(
+                          color: barColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          // "spent / budget"
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(baht.format(spent),
-                  style: AppType.headlineMedium
-                      .copyWith(color: barColor)),
-              const SizedBox(width: AppSpacing.xs),
-              Text('/ ${baht.format(_budget)}',
-                  style: AppType.bodyMedium
-                      .copyWith(color: AppColors.neutral500)),
-            ],
+          const SizedBox(height: AppSpacing.xl),
+          Text(
+            baht.format(spent),
+            style: AppType.displayLarge.copyWith(
+              color: barColor,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${s.ofBudgetUsed('$pct')} · ${baht.format(_budget)}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
           const SizedBox(height: AppSpacing.sm),
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.pill),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
-              backgroundColor: AppColors.neutral200,
+              minHeight: 10,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(barColor),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            s.ofBudgetUsed('$pct'),
-            style: AppType.caption.copyWith(
-              color: overBudget ? AppColors.danger : AppColors.neutral500,
             ),
           ),
         ],

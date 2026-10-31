@@ -30,8 +30,7 @@ class _MonthData {
   final List<Purchase> purchases;
   final Map<String, Product> productsById;
   final List<MonthSpend> spendSeries; // last N months, oldest→newest
-  _MonthData(
-      this.summary, this.purchases, this.productsById, this.spendSeries);
+  _MonthData(this.summary, this.purchases, this.productsById, this.spendSeries);
 }
 
 class _BudgetScreenState extends State<BudgetScreen> {
@@ -153,8 +152,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
             ),
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: MonthNavigator(
                 month: _month,
                 onChanged: _selectMonth,
@@ -512,8 +510,8 @@ class _BarChart extends StatelessWidget {
                 maxAmount: maxAmount,
                 label: _label(m.month),
                 selected: m.month == selKey,
-                amountLabel: NumberFormat.compact(locale: locale)
-                    .format(m.amount),
+                amountLabel:
+                    NumberFormat.compact(locale: locale).format(m.amount),
                 onTap: () => onSelectMonth(_parse(m.month)),
               ),
             ),
@@ -530,7 +528,8 @@ class _BarChart extends StatelessWidget {
   String _label(String yyyymm) {
     final p = yyyymm.split('-');
     if (p.length < 2) return yyyymm;
-    return DateFormat('MMM', locale).format(DateTime(int.parse(p[0]), int.parse(p[1])));
+    return DateFormat('MMM', locale)
+        .format(DateTime(int.parse(p[0]), int.parse(p[1])));
   }
 }
 
@@ -572,10 +571,14 @@ class _Bar extends StatelessWidget {
             child: Container(
               height: barHeight,
               decoration: BoxDecoration(
-                gradient: selected ? AppGradients.brand : null,
+                gradient: selected
+                    ? (Theme.of(context).brightness == Brightness.dark
+                        ? AppGradients.brandDark
+                        : AppGradients.brand)
+                    : null,
                 color: selected ? null : AppColors.brand100,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(AppRadius.sm)),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.sm)),
               ),
             ),
           ),
@@ -831,8 +834,8 @@ class _CategoryRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(baht.format(amount),
-                  style: AppType.titleMedium
-                      .copyWith(color: AppColors.brand600)),
+                  style:
+                      AppType.titleMedium.copyWith(color: AppColors.brand600)),
               Text('${pct.toStringAsFixed(0)}%', style: AppType.caption),
             ],
           ),

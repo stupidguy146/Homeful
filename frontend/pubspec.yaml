@@ -1,5 +1,5 @@
-name: room_shopping_app
-description: homeful - home consumable tracker (Flutter client)
+name: checkon
+description: Checkon (เช็คก่อน) - home consumable tracker
 publish_to: "none"
 version: 1.0.0+1
 
@@ -15,7 +15,6 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.3.2
   image_picker: ^1.1.2
-  google_fonts: ^6.2.1
   mobile_scanner: ^7.4.2
   local_auth: ^3.0.2
   flutter_secure_storage: ^11.2.0
@@ -35,6 +34,14 @@ flutter:
   assets:
     - assets/images/logos/
     - assets/images/icons/
+  shaders:
+    - shaders/glass_lens.frag
+  fonts:
+    - family: Anuphan
+      fonts:
+        - asset: assets/fonts/anuphan/Anuphan-Variable.ttf
+          weight: 100
+          style: normal
 
 flutter_launcher_icons:
   image_path: assets/images/icons/checkon_icon.png

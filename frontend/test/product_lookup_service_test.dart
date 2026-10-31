@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:room_shopping_app/models/household_item.dart';
-import 'package:room_shopping_app/services/product_lookup_service.dart';
+import 'package:checkon/models/household_item.dart';
+import 'package:checkon/services/product_lookup_service.dart';
 
 void main() {
   test('maps barcode product details for the add form', () async {
