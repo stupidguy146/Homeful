@@ -275,22 +275,16 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-              child: Row(
-                children: [
-                  Text(s.itemsTitle,
-                      style: Theme.of(context).textTheme.headlineMedium),
-                ],
-              ),
+            GradientHeader(
+              title: s.itemsTitle,
+              subtitle: s.appTitle,
             ),
             // month navigator
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: MonthNavigator(
                 month: _month,
                 locale: context.locale.lang,
@@ -308,8 +302,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             const SizedBox(height: AppSpacing.sm),
             // search
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
@@ -325,8 +318,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
               height: 44,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 children: [
                   _CatChip(
                     label: s.categoryAll,
@@ -405,8 +397,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             await _confirmDelete(p);
                             return false;
                           },
-                          background:
-                              _SwipeDeleteBackground(label: s.delete),
+                          background: _SwipeDeleteBackground(label: s.delete),
                           child: _ProductCard(
                             product: p,
                             onTap: () async {
@@ -581,8 +572,7 @@ class _ProductCard extends StatelessWidget {
                 ),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ],
             ),

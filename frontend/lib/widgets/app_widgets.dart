@@ -86,7 +86,7 @@ class GradientHeader extends StatelessWidget {
     this.logoHeight = 44,
     this.centerTitle,
     this.padding = const EdgeInsets.fromLTRB(
-        AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+        AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.lg),
   });
 
   @override
@@ -97,6 +97,7 @@ class GradientHeader extends StatelessWidget {
         gradient != null || isDark ? Colors.white : AppColors.brand900;
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       padding: padding,
       decoration: BoxDecoration(
         gradient:
@@ -209,36 +210,47 @@ class GradientHeader extends StatelessWidget {
 class HeaderIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const HeaderIconButton({super.key, required this.icon, required this.onTap});
+  final String? tooltip;
+  const HeaderIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: AppRadius.rMd,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: AppGlass.blurSigma,
-          sigmaY: AppGlass.blurSigma,
-        ),
-        child: Material(
-          color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
-          shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.rMd,
-            side: BorderSide(
-              color: Colors.white.withValues(alpha: AppGlass.borderOpacity),
-            ),
+    return Tooltip(
+      message: tooltip ?? MaterialLocalizations.of(context).backButtonTooltip,
+      child: ClipRRect(
+        borderRadius: AppRadius.rMd,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppGlass.blurSigma,
+            sigmaY: AppGlass.blurSigma,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: AppRadius.rMd,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Icon(
-                icon,
-                color: isDark ? Colors.white : AppColors.brand800,
-                size: 22,
+          child: Material(
+            color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.58),
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.rMd,
+              side: BorderSide(
+                color: Colors.white.withValues(
+                  alpha: isDark ? 0.62 : AppGlass.borderOpacity,
+                ),
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: AppRadius.rMd,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Icon(
+                  icon,
+                  color: isDark ? Colors.white : AppColors.brand800,
+                  size: 22,
+                ),
               ),
             ),
           ),

@@ -164,18 +164,9 @@ class _HeaderBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.18),
-      borderRadius: AppRadius.rMd,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.rMd,
-        child: const Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
-          child: Icon(Icons.chevron_left_rounded,
-              color: Colors.white, size: 28),
-        ),
-      ),
+    return HeaderIconButton(
+      icon: Icons.chevron_left_rounded,
+      onTap: onTap,
     );
   }
 }

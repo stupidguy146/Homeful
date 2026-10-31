@@ -15,7 +15,6 @@ import '../widgets/auth_scope.dart';
 import '../widgets/notification_bell.dart';
 import '../state/data_refresh.dart';
 import '../i18n/locale_scope.dart';
-import 'add_edit_item_screen.dart';
 import 'item_detail_screen.dart';
 
 /// Checkon home dashboard built from household items and analytics.
@@ -126,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onBellReturn: _reload,
                 ),
                 Transform.translate(
-                  offset: const Offset(0, -28),
+                  offset: const Offset(0, -16),
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -180,25 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'fab_home',
-        backgroundColor: AppColors.brand100,
-        foregroundColor: AppColors.brand800,
-        elevation: 3,
-        highlightElevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.rXl,
-          side: BorderSide(
-            color: AppColors.skyBlue.withValues(alpha: 0.42),
-          ),
-        ),
-        onPressed: () async {
-          final created = await showAddItemFlow(context);
-          if (created) _reload();
-        },
-        icon: const Icon(Icons.add_rounded),
-        label: Text(s.addProduct),
       ),
     );
   }
@@ -268,7 +248,7 @@ class _GreetingHeader extends StatelessWidget {
                 AppSpacing.xl,
                 AppSpacing.lg,
                 AppSpacing.xl,
-                AppSpacing.xxl,
+                AppSpacing.xxxl,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,21 +452,19 @@ class _SummaryMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBackground =
+        color == AppColors.warning ? AppColors.amberTint : AppColors.brand100;
     return Row(
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withValues(alpha: 0.2),
-                color.withValues(alpha: 0.07),
-              ],
-            ),
-            borderRadius: AppRadius.rMd,
+            color: isDark
+                ? color.withValues(alpha: 0.2)
+                : iconBackground.withValues(alpha: 0.8),
+            shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 21),
         ),
@@ -498,8 +476,9 @@ class _SummaryMetric extends StatelessWidget {
               Text(
                 value,
                 style: AppType.headlineMedium.copyWith(
-                  color: color,
+                  color: isDark ? color : AppColors.brand800,
                   height: 1,
+                  fontWeight: FontWeight.w700,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -507,7 +486,12 @@ class _SummaryMetric extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.neutral800,
+                      fontWeight: FontWeight.w600,
+                    ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -628,7 +612,9 @@ class _BudgetCardState extends State<_BudgetCard> {
     final progress = ratio.clamp(0.0, 1.0);
     final pct = (ratio * 100).round();
     final overBudget = spent > _budget;
-    final barColor = overBudget ? AppColors.danger : AppColors.brand500;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final barColor = overBudget ? AppColors.danger : AppColors.brand700;
+    final trackColor = isDark ? AppColors.darkSurfaceAlt : AppColors.neutral300;
 
     return _HomeGlassCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -666,8 +652,7 @@ class _BudgetCardState extends State<_BudgetCard> {
                       value: progress,
                       strokeWidth: 5,
                       strokeCap: StrokeCap.round,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      backgroundColor: trackColor,
                       valueColor: AlwaysStoppedAnimation(barColor),
                     ),
                     Center(
@@ -688,7 +673,11 @@ class _BudgetCardState extends State<_BudgetCard> {
           Text(
             baht.format(spent),
             style: AppType.displayLarge.copyWith(
-              color: barColor,
+              color: overBudget
+                  ? AppColors.danger
+                  : isDark
+                      ? AppColors.brand300
+                      : AppColors.brand800,
               height: 1,
             ),
           ),
@@ -696,7 +685,9 @@ class _BudgetCardState extends State<_BudgetCard> {
           Text(
             '${s.ofBudgetUsed('$pct')} · ${baht.format(_budget)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color:
+                      isDark ? AppColors.darkTextMuted : AppColors.neutral800,
+                  fontWeight: FontWeight.w600,
                 ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -705,8 +696,7 @@ class _BudgetCardState extends State<_BudgetCard> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 10,
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor: trackColor,
               valueColor: AlwaysStoppedAnimation(barColor),
             ),
           ),

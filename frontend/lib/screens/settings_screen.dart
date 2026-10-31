@@ -20,29 +20,9 @@ class SettingsScreen extends StatelessWidget {
         children: [
           GradientHeader(
             title: s.settings,
-            leading: Material(
-              color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: AppRadius.rMd,
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                borderRadius: AppRadius.rMd,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: AppRadius.rMd,
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.65)),
-                  ),
-                  child: Tooltip(
-                    message:
-                        MaterialLocalizations.of(context).backButtonTooltip,
-                    child: const Icon(Icons.chevron_left_rounded,
-                        color: Colors.white, size: 28),
-                  ),
-                ),
-              ),
+            leading: HeaderIconButton(
+              icon: Icons.chevron_left_rounded,
+              onTap: () => Navigator.pop(context),
             ),
           ),
           Padding(
@@ -160,4 +140,3 @@ class _OptionRow extends StatelessWidget {
     );
   }
 }
-

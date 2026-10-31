@@ -160,16 +160,12 @@ class _ToBuyScreenState extends State<ToBuyScreen> {
     final s = context.strings;
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Row(
-                children: [
-                  Text(s.toBuyTitle,
-                      style: Theme.of(context).textTheme.headlineMedium),
-                ],
-              ),
+            GradientHeader(
+              title: s.toBuyTitle,
+              subtitle: s.appTitle,
             ),
             Expanded(
               child: FutureBuilder<List<Product>>(

@@ -177,22 +177,6 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.62),
-      borderRadius: AppRadius.rMd,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.rMd,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Icon(
-            icon,
-            color: isDark ? Colors.white : AppColors.brand800,
-            size: 22,
-          ),
-        ),
-      ),
-    );
+    return HeaderIconButton(icon: icon, onTap: onTap);
   }
 }

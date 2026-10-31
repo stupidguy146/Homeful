@@ -139,17 +139,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
-              child: Row(
-                children: [
-                  Text(s.budgetTitle,
-                      style: Theme.of(context).textTheme.headlineMedium),
-                ],
-              ),
+            GradientHeader(
+              title: s.budgetTitle,
+              subtitle: s.appTitle,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
